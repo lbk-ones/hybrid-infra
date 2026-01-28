@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading...</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 圆点容器：横向排列 */
+        .loader {
+            display: flex;
+            gap: 8px; /* 圆点之间的间距 */
+        }
+
+        /* 单个圆点样式 */
+        .loader > div {
+            width: 16px;
+            height: 16px;
+            background-color: #4CAF50; /* 绿色圆点 */
+            border-radius: 50%; /* 圆形 */
+            /* 动画：名称 时长 速度曲线 无限循环 */
+            animation: bounce 1.4s ease-in-out infinite both;
+        }
+
+        /* 给每个圆点设置延迟，实现依次跳动 */
+        .loader > div:nth-child(1) { animation-delay: -0.32s; }
+        .loader > div:nth-child(2) { animation-delay: -0.16s; }
+
+        /* 定义跳动动画帧 */
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); } /* 缩小到0 */
+            40% { transform: scale(1); } /* 放大到1 */
+        }
+    </style>
+</head>
+<body>
+<div class="loader">
+    <div></div>
+    <div></div>
+    <div></div>
+</div>
+</body>
+</html>

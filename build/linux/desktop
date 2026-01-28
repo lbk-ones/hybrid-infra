@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=My Product
+Comment=A hybrid-infra application
+# The Exec line includes %u to pass the URL to the application
+Exec=/usr/local/bin/hybrid-infra.exe %u
+Terminal=false
+Type=Application
+Icon=hybrid-infra.exe
+Categories=Utility;
+StartupWMClass=hybrid-infra.exe
+
+ 

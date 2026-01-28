@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提示框</title>
+    <script src="/wails/runtime.js" type="module"></script>
+    <style>
+        /* 重置默认样式，避免边距/内边距影响 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+
+        /* 页面主体样式（仅作演示） */
+        body {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        #hybrid-alert-container {
+            width: calc(100% - 2px);
+            height: calc(100% - 2px);
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-flow: column nowrap;
+            gap: 5px;
+            border: 1px solid #0F9096;
+            position: relative;
+            overflow: hidden;
+            background-color:#fff;
+
+        }
+
+        #hybrid-alert-container-top {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: start;
+            flex-flow: row nowrap;
+            gap: 5px;
+            --wails-draggable: drag;
+        }
+
+        #hybrid-ac-right {
+            display: flex;
+            flex-flow: column nowrap;
+        }
+
+        #hybrid-ac-title {
+            font-weight: bolder;
+        }
+
+        /* -------------------------- 核心：确定按钮样式 -------------------------- */
+        .btn {
+            /* 基础布局 */
+            display: inline-block; /* 行内块，可设置宽高/内边距 */
+            padding: 6px 24px; /* 上下8px，左右24px，匹配图片中按钮的内边距 */
+            border: none; /* 去除默认边框 */
+            border-radius: 4px; /* 圆角，匹配图片中的按钮圆角 */
+            cursor: pointer; /* 鼠标悬浮显示手型 */
+
+            /* 背景色：图片中的青绿色/蓝绿色，可根据实际需求微调 */
+            background-color: #0F9096;
+            /* 文字样式：白色、居中、中等字号 */
+            color: #ffffff;
+            font-size: 12px;
+            text-align: center;
+            line-height: 1; /* 行高重置，避免文字垂直偏移 */
+            /* 去除点击后的默认高亮边框 */
+            outline: none;
+            /* 禁止文字选中 */
+            user-select: none;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #12a0a7;
+        }
+
+        .bar {
+            width: 100%;
+            height: 5px;
+            position: absolute;
+            top: 0;
+            background-color: #0F9096;
+            left: 0;            /* 初始位置 */
+
+        }
+    </style>
+</head>
+<body>
+<div id="hybrid-alert-container">
+    <div class="bar"></div>
+    <div id="hybrid-alert-container-top">
+        <div id="icon">
+            <svg t="1769590023570" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 p-id="5122" width="32" height="32">
+                <path d="M512 298.666667a42.666667 42.666667 0 0 1 42.666667 42.666666v170.666667a42.666667 42.666667 0 0 1-85.333334 0V341.333333a42.666667 42.666667 0 0 1 42.666667-42.666666z m-30.165333 311.168a42.624 42.624 0 1 1 60.330666 60.330666 42.624 42.624 0 1 1-60.330666-60.330666zM512 128c-212.096 0-384 171.904-384 384s171.904 384 384 384 384-171.904 384-384-171.904-384-384-384z m0-85.333333c259.2 0 469.333333 210.133333 469.333333 469.333333s-210.133333 469.333333-469.333333 469.333333S42.666667 771.2 42.666667 512 252.8 42.666667 512 42.666667z"
+                      fill="#0F9096" p-id="5123"></path>
+            </svg>
+        </div>
+        <div id="hybrid-ac-right">
+            <div id="hybrid-ac-title">
+                提示
+            </div>
+            <div id="hybrid-ac-body">
+                提示内容
+            </div>
+        </div>
+    </div>
+
+    <button class="btn" wml-window="Close">确定</button>
+</div>
+</body>
+</html>
