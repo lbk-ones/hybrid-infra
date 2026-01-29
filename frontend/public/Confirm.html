@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>确认框</title>
+    <script src="/wails/runtime.js" type="module"></script>
+    <style>
+        /* 重置默认样式，避免边距/内边距影响 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+
+        /* 页面主体样式（仅作演示） */
+        body {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        #hybrid-confirm-container {
+            width: calc(100% - 2px);
+            height: calc(100% - 2px);
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-flow: column nowrap;
+            gap: 5px;
+            border: 1px solid #0F9096;
+            position: relative;
+            overflow: hidden;
+            background-color: #fff;
+
+        }
+
+        #hybrid-confirm-container-top {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: start;
+            flex-flow: row nowrap;
+            gap: 5px;
+            --wails-draggable: drag;
+        }
+
+        #hybrid-ac-right {
+            display: flex;
+            flex-flow: column nowrap;
+        }
+
+        #hybrid-ac-title {
+            font-weight: bolder;
+        }
+
+        /* -------------------------- 核心：确定按钮样式 -------------------------- */
+        .btn {
+            /* 基础布局 */
+            display: inline-block; /* 行内块，可设置宽高/内边距 */
+            padding: 6px 24px; /* 上下8px，左右24px，匹配图片中按钮的内边距 */
+            border: none; /* 去除默认边框 */
+            border-radius: 4px; /* 圆角，匹配图片中的按钮圆角 */
+            cursor: pointer; /* 鼠标悬浮显示手型 */
+
+            /* 背景色：图片中的青绿色/蓝绿色，可根据实际需求微调 */
+            background-color: #0F9096;
+            /* 文字样式：白色、居中、中等字号 */
+            color: #ffffff;
+            font-size: 12px;
+            text-align: center;
+            line-height: 1; /* 行高重置，避免文字垂直偏移 */
+            /* 去除点击后的默认高亮边框 */
+            outline: none;
+            /* 禁止文字选中 */
+            user-select: none;
+            transition: all 0.3s;
+        }
+
+        .btn-cancel {
+            /* 基础布局 */
+            display: inline-block; /* 行内块，可设置宽高/内边距 */
+            padding: 6px 24px; /* 上下8px，左右24px，匹配图片中按钮的内边距 */
+            border-radius: 4px; /* 圆角，匹配图片中的按钮圆角 */
+            cursor: pointer; /* 鼠标悬浮显示手型 */
+
+            /* 背景色：图片中的青绿色/蓝绿色，可根据实际需求微调 */
+            border: 1px solid #0F9096;
+            background-color: #fff;
+            /* 文字样式：白色、居中、中等字号 */
+            color: #0F9096;
+            font-size: 12px;
+            text-align: center;
+            line-height: 1; /* 行高重置，避免文字垂直偏移 */
+            /* 去除点击后的默认高亮边框 */
+            outline: none;
+            /* 禁止文字选中 */
+            user-select: none;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #12a0a7;
+        }
+
+        .bar {
+            width: 100%;
+            height: 5px;
+            position: absolute;
+            top: 0;
+            background-color: #0F9096;
+            left: 0; /* 初始位置 */
+
+        }
+
+        #confirm-id {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div id="confirm-id"></div>
+<div id="hybrid-confirm-container">
+    <div class="bar"></div>
+    <div id="hybrid-confirm-container-top">
+        <div id="confirm-icon">
+            <svg t="1769651180563" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 p-id="4819" width="32" height="32">
+                <path d="M56.529619 504.928933c0-251.268294 204.418104-455.635412 455.634413-455.635412s455.634412 204.367118 455.634412 455.635412c0 251.217308-204.418104 455.584426-455.634412 455.584427S56.529619 756.146241 56.529619 504.928933z m85.447636 0c0 204.111188 166.076588 370.187777 370.186777 370.187777 204.161175 0 370.237763-166.076588 370.237763-370.187777 0-204.162174-166.076588-370.238763-370.237763-370.238762-204.110189 0-370.186777 166.076588-370.186777 370.238762z m314.264068 170.741313a99.104901 99.104901 0 0 1-86.165439-57.255344l-24.706244-52.642605a42.708322 42.708322 0 0 1 77.348849-36.240091l24.655259 52.642606a13.833217 13.833217 0 0 0 12.353622 8.149771c2.716257-0.204944 9.175491-0.563846 12.917468-7.125052l130.656273-227.689741a42.696325 42.696325 0 1 1 74.067748 42.488382L546.712585 625.693912a99.200875 99.200875 0 0 1-86.370383 50.079306c-1.435607 0-2.717257-0.050986-4.100879-0.102972z"
+                      p-id="4820" fill="#0F9096"></path>
+            </svg>
+        </div>
+        <div id="hybrid-confirm-ac-right">
+            <div id="hybrid-confirm-ac-title">
+                确认
+            </div>
+            <div id="hybrid-confirm-ac-body">
+                是否确认
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <button id="confirm-confirm" class="btn">确定</button>
+        <button id="confirm-cancel" class="btn-cancel">取消</button>
+    </div>
+</div>
+<script>
+    window.onload = function () {
+        document.getElementById('confirm-confirm').addEventListener('click', async function () {
+            let textContent = document.getElementById('confirm-id').textContent;
+            if(textContent){
+                window.wails.Events.Emit(textContent, "1")
+            }else{
+                window.wails.Window.Close();
+            }
+        })
+        document.getElementById('confirm-cancel').addEventListener('click', function () {
+            let textContent = document.getElementById('confirm-id').textContent;
+            if(textContent){
+                window.wails.Events.Emit(textContent, "0")
+            }else{
+                window.wails.Window.Close();
+            }
+        })
+    }
+</script>
+</body>
+</html>

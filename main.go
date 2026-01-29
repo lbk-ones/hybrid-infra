@@ -8,6 +8,7 @@ import (
 	"hybrid-infra/go/setting"
 	"hybrid-infra/go/utils"
 	"log"
+	"log/slog"
 	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -33,6 +34,7 @@ func main() {
 			Handler:    application.BundledAssetFileServer(assets),
 			Middleware: utils.HttpMiddleWare,
 		},
+		LogLevel: slog.Level(pkgInfo.LogLevel),
 		Mac: application.MacOptions{
 			ApplicationShouldTerminateAfterLastWindowClosed: true,
 		},
@@ -41,7 +43,7 @@ func main() {
 		},
 	})
 
-	// 本来相加启动屏 但是wails3 对于启动屏的支持实在是有点弱。。。 算了吧那就
+	// 本来想加启动屏 但是wails3 对于启动屏的支持实在是有点拉跨。。。 算了吧那就
 
 	mainWindow := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Name:  "main-window",

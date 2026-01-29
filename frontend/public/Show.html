@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>确认框</title>
+    <script src="/wails/runtime.js" type="module"></script>
+    <style>
+        /* 重置默认样式，避免边距/内边距影响 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+
+        /* 页面主体样式（仅作演示） */
+        body {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        #hybrid-show-container {
+            width: calc(100% - 2px);
+            height: calc(100% - 2px);
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-flow: column nowrap;
+            gap: 5px;
+            border: 1px solid #0F9096;
+            position: relative;
+            overflow: hidden;
+            background-color: #fff;
+
+        }
+
+        #hybrid-confirm-container-top {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: start;
+            flex-flow: row nowrap;
+            gap: 5px;
+            --wails-draggable: drag;
+        }
+
+        #hybrid-ac-right {
+            display: flex;
+            flex-flow: column nowrap;
+        }
+
+        #hybrid-ac-title {
+            font-weight: bolder;
+        }
+
+        /* -------------------------- 核心：确定按钮样式 -------------------------- */
+        .btn {
+            /* 基础布局 */
+            display: inline-block; /* 行内块，可设置宽高/内边距 */
+            padding: 6px 24px; /* 上下8px，左右24px，匹配图片中按钮的内边距 */
+            border: none; /* 去除默认边框 */
+            border-radius: 4px; /* 圆角，匹配图片中的按钮圆角 */
+            cursor: pointer; /* 鼠标悬浮显示手型 */
+
+            /* 背景色：图片中的青绿色/蓝绿色，可根据实际需求微调 */
+            background-color: #0F9096;
+            /* 文字样式：白色、居中、中等字号 */
+            color: #ffffff;
+            font-size: 12px;
+            text-align: center;
+            line-height: 1; /* 行高重置，避免文字垂直偏移 */
+            /* 去除点击后的默认高亮边框 */
+            outline: none;
+            /* 禁止文字选中 */
+            user-select: none;
+            transition: all 0.3s;
+        }
+
+        .btn-cancel {
+            /* 基础布局 */
+            display: inline-block; /* 行内块，可设置宽高/内边距 */
+            padding: 6px 24px; /* 上下8px，左右24px，匹配图片中按钮的内边距 */
+            border-radius: 4px; /* 圆角，匹配图片中的按钮圆角 */
+            cursor: pointer; /* 鼠标悬浮显示手型 */
+
+            /* 背景色：图片中的青绿色/蓝绿色，可根据实际需求微调 */
+            border: 1px solid #0F9096;
+            background-color: #fff;
+            /* 文字样式：白色、居中、中等字号 */
+            color: #0F9096;
+            font-size: 12px;
+            text-align: center;
+            line-height: 1; /* 行高重置，避免文字垂直偏移 */
+            /* 去除点击后的默认高亮边框 */
+            outline: none;
+            /* 禁止文字选中 */
+            user-select: none;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #12a0a7;
+        }
+
+        .bar {
+            width: 100%;
+            height: 5px;
+            position: absolute;
+            top: 0;
+            background-color: #0F9096;
+            left: 0; /* 初始位置 */
+
+        }
+
+        #confirm-id {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div id="hybrid-show-container">
+</div>
+<script>
+
+    function closeWindow(){
+        window.wails.Window.Close();
+    }
+</script>
+</body>
+</html>

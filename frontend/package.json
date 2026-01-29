@@ -10,7 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@wailsio/runtime": "latest"
+    "@wailsio/runtime": "latest",
+    "bootstrap": "5.3.8"
   },
   "devDependencies": {
     "vite": "^5.0.0"

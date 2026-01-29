@@ -6,10 +6,10 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
-export class ShowInfo {
+export class ConfirmReq {
     /**
-     * Creates a new ShowInfo instance.
-     * @param {Partial<ShowInfo>} [$$source = {}] - The source object to create the ShowInfo.
+     * Creates a new ConfirmReq instance.
+     * @param {Partial<ConfirmReq>} [$$source = {}] - The source object to create the ConfirmReq.
      */
     constructor($$source = {}) {
         if (!("title" in $$source)) {
@@ -28,25 +28,90 @@ export class ShowInfo {
              */
             this["body"] = "";
         }
-        if (!("footer" in $$source)) {
+        if (!("okText" in $$source)) {
             /**
-             * Footer
              * @member
              * @type {string}
              */
-            this["footer"] = "";
+            this["okText"] = "";
+        }
+        if (!("cancelText" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["cancelText"] = "";
+        }
+        if (!("place" in $$source)) {
+            /**
+             * 位置 center、bottomLeft、bottomRight、topRight、topLeft
+             * @member
+             * @type {string}
+             */
+            this["place"] = "";
         }
 
         Object.assign(this, $$source);
     }
 
     /**
-     * Creates a new ShowInfo instance from a string or object.
+     * Creates a new ConfirmReq instance from a string or object.
      * @param {any} [$$source = {}]
-     * @returns {ShowInfo}
+     * @returns {ConfirmReq}
      */
     static createFrom($$source = {}) {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        return new ShowInfo(/** @type {Partial<ShowInfo>} */($$parsedSource));
+        return new ConfirmReq(/** @type {Partial<ConfirmReq>} */($$parsedSource));
+    }
+}
+
+export class ShowReq {
+    /**
+     * Creates a new ShowReq instance.
+     * @param {Partial<ShowReq>} [$$source = {}] - The source object to create the ShowReq.
+     */
+    constructor($$source = {}) {
+        if (!("body" in $$source)) {
+            /**
+             * 内容体
+             * @member
+             * @type {string}
+             */
+            this["body"] = "";
+        }
+        if (!("place" in $$source)) {
+            /**
+             * 位置 center、bottomLeft、bottomRight、topRight、topLeft
+             * @member
+             * @type {string}
+             */
+            this["place"] = "";
+        }
+        if (!("width" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["width"] = 0;
+        }
+        if (!("height" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["height"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ShowReq instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ShowReq}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ShowReq(/** @type {Partial<ShowReq>} */($$parsedSource));
     }
 }

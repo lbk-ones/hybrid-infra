@@ -17,6 +17,7 @@ type PkgInfo struct {
 	Frameless bool   `json:"frameless"` // 项目名称
 	Width     int    `json:"width"`
 	Height    int    `json:"height"`
+	LogLevel  int    `json:"logLevel"` // 日志级别 默认INFO
 }
 
 // New 实例化
@@ -26,10 +27,11 @@ func New() *Setting {
 
 // Parse 解析当前运行路径下的setting.json
 func (*Setting) Parse() *PkgInfo {
-	var pkgJson = &PkgInfo{
+	pkgJson := &PkgInfo{
 		Title:     "App",
 		Frameless: false,
 		Url:       "/",
+		LogLevel:  0,
 	}
 	dir, err := os.Getwd()
 	fg.GetLogger().Info("current dir:", dir)

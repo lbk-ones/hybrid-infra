@@ -1,7 +1,7 @@
 .idea
 .task
 bin
-log
+/log
 frontend/dist
 frontend/node_modules
 build/linux/appimage/build

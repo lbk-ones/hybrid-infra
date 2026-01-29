@@ -8,6 +8,10 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as utils$0 from "../utils/models.js";
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as $models from "./models.js";
 
 /**
@@ -15,27 +19,41 @@ import * as $models from "./models.js";
  * title    标题
  * body     body体
  * destroy  关闭时间 0代表不会关闭
+ * place    位置 center、bottomLeft、bottomRight、topRight、topLeft
  * @param {string} title
  * @param {string} body
  * @param {number} destroy
+ * @param {string} place
  * @returns {$CancellablePromise<void>}
  */
-export function Alert(title, body, destroy) {
-    return $Call.ByID(4073326155, title, body, destroy);
+export function Alert(title, body, destroy, place) {
+    return $Call.ByID(4073326155, title, body, destroy, place);
 }
 
 /**
- * @param {$models.ShowInfo} str
- * @returns {$CancellablePromise<void>}
+ * Confirm 确认框
+ * 返回1代表通过 0代表取消
+ * @param {$models.ConfirmReq} req
+ * @returns {$CancellablePromise<string>}
  */
-export function Confirm(str) {
-    return $Call.ByID(1626782001, str);
+export function Confirm(req) {
+    return $Call.ByID(1626782001, req);
 }
 
 /**
- * @param {string} str
+ * OpenWindowByUrl 通过地址连接和其他信息一起打开一个新窗口
+ * @param {utils$0.NewWindowOptions} option
  * @returns {$CancellablePromise<void>}
  */
-export function Show(str) {
-    return $Call.ByID(794715274, str);
+export function OpenWindowByUrl(option) {
+    return $Call.ByID(1291584495, option);
+}
+
+/**
+ * Show 展示html
+ * @param {$models.ShowReq} req
+ * @returns {$CancellablePromise<void>}
+ */
+export function Show(req) {
+    return $Call.ByID(794715274, req);
 }
