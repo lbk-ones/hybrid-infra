@@ -1,27 +1,39 @@
 package utils
 
-import "net/http"
+import (
+	"net/http"
+	"net/url"
+	"strings"
+)
 
-// HttpMiddleWare http 中间件
-func HttpMiddleWare(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// 1. 设置核心跨域响应头
-		// 允许所有源（生产环境建议指定具体域名，如"https://your-frontend.com"）
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		// 允许的HTTP方法
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		// 允许的请求头
-		w.Header().Set("Access-Control-Allow-Headers", "*")
-		// 允许携带Cookie（如果需要，需将Allow-Origin设为具体域名，不能是*）
-		// w.Header().Set("Access-Control-Allow-Credentials", "true")
-		// 预检请求缓存时间
-		w.Header().Set("Access-Control-Max-Age", "86400") // 24小时
-		// 2. 处理预检请求（OPTIONS方法）：直接返回200
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-		// 3. 调用下一个处理器（业务逻辑）
-		next.ServeHTTP(w, r)
-	})
+// AssetMiddleware permits the configured remote frontends to use the desktop
+// asset server. CORS is an origin policy, not authentication or a service sandbox.
+func AssetMiddleware(origins []string) func(http.Handler) http.Handler {
+	allowed := make(map[string]bool, len(origins))
+	for _, origin := range origins {
+		allowed[origin] = true
+	}
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			origin := r.Header.Get("Origin")
+			if origin != "" {
+				w.Header().Add("Vary", "Origin")
+				u, err := url.Parse(origin)
+				sameOrigin := err == nil && u.Host == r.Host && u.User == nil && u.Path == "" && u.RawQuery == "" && u.Fragment == "" && (u.Scheme == "http" || u.Scheme == "https" || u.Scheme == "wails")
+				if !sameOrigin && !allowed[origin] {
+					http.Error(w, "frontend origin is not configured", http.StatusForbidden)
+					return
+				}
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+				w.Header().Set("Access-Control-Allow-Methods", "GET, HEAD, POST, OPTIONS")
+				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Wails-Client-ID, X-Wails-Window-Name, X-Wails-Chunk-ID, X-Wails-Chunk-Index, X-Wails-Chunk-Total")
+				w.Header().Set("Access-Control-Max-Age", "600")
+			}
+			if r.Method == http.MethodOptions && strings.TrimSpace(origin) != "" {
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
 }

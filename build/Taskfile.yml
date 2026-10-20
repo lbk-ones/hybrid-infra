@@ -13,13 +13,14 @@ tasks:
     sources:
       - package.json
       - pnpm-lock.yaml
+      - pnpm-workspace.yaml
     generates:
       - node_modules
     preconditions:
-      - sh: pnpm version
-        msg: "Looks like pnpm isn't installed. Npm is part of the Node installer: https://nodejs.org/en/download/"
+      - sh: pnpm --version
+        msg: "pnpm is required. Install pnpm and retry."
     cmds:
-      - pnpm install
+      - pnpm install --frozen-lockfile
 
   build:frontend:
     label: build:frontend (DEV={{.DEV}})
@@ -113,7 +114,7 @@ tasks:
     deps:
       - task: install:frontend:deps
     cmds:
-      - pnpm run dev -- --port {{.VITE_PORT}} --strictPort
+      - pnpm run dev --host 127.0.0.1 --port {{.VITE_PORT}} --strictPort
 
   update:build-assets:
     summary: Updates the build assets

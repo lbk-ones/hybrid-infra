@@ -17,13 +17,19 @@ const (
 // CreateUrlWindow center、bottomLeft、bottomRight、topRight、topLeft
 func CreateUrlWindow(option NewWindowOptions) application.Window {
 	var window *application.WebviewWindow
-	box, _ := cross.GetScreenSize()
 	app := application.Get()
 	place := option.Place
 	width := option.Width
 	height := option.Height
+	if width <= 0 {
+		width = 300
+	}
+	if height <= 0 {
+		height = 150
+	}
 	isFullScreen := startState(option)
 	options := application.WebviewWindowOptions{
+		Hidden:         true,
 		Title:          option.Title,
 		Name:           option.Name,
 		StartState:     isFullScreen,
@@ -48,7 +54,7 @@ func CreateUrlWindow(option NewWindowOptions) application.Window {
 			window.OpenDevTools()
 		}
 	}
-	if isFullScreen != application.WindowStateMaximised {
+	if isFullScreen == application.WindowStateNormal {
 		options.Width = width
 		options.Height = height
 	}
@@ -57,26 +63,15 @@ func CreateUrlWindow(option NewWindowOptions) application.Window {
 	} else {
 		options.Windows.DisableFramelessWindowDecorations = false
 	}
-	if place == PlaceCenter {
-		options.InitialPosition = application.WindowCentered
-	} else if place != "" {
-		var X, Y int
-		if place == PlaceBottomRight {
-			X = int(box.Width) - width
-			Y = int(box.Top) + (int(box.Height) - height)
-		} else if place == PlaceBottomLeft {
-			X = int(box.Left)
-			Y = int(box.Top) + (int(box.Height) - height)
-		} else if place == PlaceTopLeft {
-			X = int(box.Left)
-			Y = int(box.Top) + int(box.Left)
-		} else if place == PlaceTopRight {
-			X = int(box.Left) + (int(box.Width) - width)
-			Y = int(box.Top)
+	options.InitialPosition = application.WindowCentered
+	if place != "" && place != PlaceCenter && isFullScreen == application.WindowStateNormal {
+		box, err := cross.GetScreenSize()
+		if err != nil {
+			app.Logger.Warn("Cannot determine work area; centering window", "error", err)
+		} else if x, y, ok := windowPosition(box, width, height, place); ok {
+			options.InitialPosition = application.WindowXY
+			options.X, options.Y = x, y
 		}
-		options.InitialPosition = application.WindowXY
-		options.X = X
-		options.Y = Y
 	}
 	window = app.Window.NewWithOptions(options)
 	window.OnWindowEvent(events.Common.WindowRuntimeReady, func(event *application.WindowEvent) {
@@ -86,7 +81,24 @@ func CreateUrlWindow(option NewWindowOptions) application.Window {
 }
 func startState(option NewWindowOptions) application.WindowState {
 	if option.IsFullscreen {
-		return application.WindowStateMaximised
+		return application.WindowStateFullscreen
 	}
 	return application.WindowStateNormal
+}
+
+func windowPosition(box cross.BOX, width, height int, place string) (int, int, bool) {
+	x, y := int(box.Left), int(box.Top)
+	switch place {
+	case PlaceTopLeft:
+	case PlaceTopRight:
+		x += max(0, int(box.Width)-width)
+	case PlaceBottomLeft:
+		y += max(0, int(box.Height)-height)
+	case PlaceBottomRight:
+		x += max(0, int(box.Width)-width)
+		y += max(0, int(box.Height)-height)
+	default:
+		return 0, 0, false
+	}
+	return x, y, true
 }

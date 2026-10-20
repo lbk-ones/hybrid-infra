@@ -2,11 +2,11 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/kbinani/screenshot"
 	"hybrid-infra/go/utils/cross"
 	"image"
 	"image/png"
-	"log"
 	"os"
 	"strings"
 )
@@ -43,23 +43,29 @@ func GetJsonStr(obj interface{}) string {
 }
 
 // Screenshot 截图
-func Screenshot(path string) {
-	box, _ := cross.GetScreenSize()
+func Screenshot(path string) error {
+	box, err := cross.GetPhysicalScreenSize()
+	if err != nil {
+		return err
+	}
 	width := box.Width
 	height := box.Height
 
 	// 2. 截取工作区区域，而非全屏
-	bounds := image.Rect(int(box.Left), int(box.Top), int(width), int(height))
+	bounds := image.Rect(int(box.Left), int(box.Top), int(box.Left+width), int(box.Top+height))
 	img, err := screenshot.CaptureRect(bounds)
 	if err != nil {
-		log.Fatalf("截图失败: %v", err)
+		return fmt.Errorf("capture screen: %w", err)
 	}
 
 	// 3. 保存图片
 	file, err := os.Create(path)
 	if err != nil {
-		log.Fatalf("创建文件失败: %v", err)
+		return fmt.Errorf("create screenshot: %w", err)
 	}
-	defer file.Close()
-	_ = png.Encode(file, img)
+	if err := png.Encode(file, img); err != nil {
+		_ = file.Close()
+		return err
+	}
+	return file.Close()
 }

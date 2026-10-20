@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "/hybrid/runtime.js";
+import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "../../../../runtime.js";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -15,11 +15,7 @@ import * as utils$0 from "../utils/models.js";
 import * as $models from "./models.js";
 
 /**
- * Alert    提示
- * title    标题
- * body     body体
- * destroy  关闭时间 0代表不会关闭
- * place    位置 center、bottomLeft、bottomRight、topRight、topLeft
+ * Alert displays plain text. destroy is in seconds; zero keeps the dialog open.
  * @param {string} title
  * @param {string} body
  * @param {number} destroy
@@ -31,8 +27,8 @@ export function Alert(title, body, destroy, place) {
 }
 
 /**
- * Confirm 确认框
- * 返回1代表通过 0代表取消
+ * Confirm returns "1" for OK, "0" for cancellation, closure or timeout.
+ * The context is supplied by Wails and supports JS CancellablePromise.cancel().
  * @param {$models.ConfirmReq} req
  * @returns {$CancellablePromise<string>}
  */
@@ -41,7 +37,7 @@ export function Confirm(req) {
 }
 
 /**
- * OpenWindowByUrl 通过地址连接和其他信息一起打开一个新窗口
+ * OpenWindowByUrl opens an internal route or a remote HTTP(S) page.
  * @param {utils$0.NewWindowOptions} option
  * @returns {$CancellablePromise<void>}
  */
@@ -50,7 +46,7 @@ export function OpenWindowByUrl(option) {
 }
 
 /**
- * Show 展示html
+ * Show displays trusted application HTML. Do not pass untrusted/user HTML here.
  * @param {$models.ShowReq} req
  * @returns {$CancellablePromise<void>}
  */

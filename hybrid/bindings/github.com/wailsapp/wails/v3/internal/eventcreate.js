@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Create as $Create } from "/hybrid/runtime.js";
+import { Create as $Create } from "../../../../../../runtime.js";
 
 function configure() {
     Object.freeze(Object.assign($Create.Events, {

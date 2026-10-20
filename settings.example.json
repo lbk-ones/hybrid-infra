@@ -1,0 +1,10 @@
+{
+  "title": "Hybrid App",
+  "url": "/",
+  "debug": false,
+  "frameless": false,
+  "width": 1280,
+  "height": 800,
+  "logLevel": 0,
+  "allowedOrigins": []
+}

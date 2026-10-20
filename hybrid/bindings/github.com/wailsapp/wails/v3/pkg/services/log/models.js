@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Create as $Create } from "/hybrid/runtime.js";
+import { Create as $Create } from "../../../../../../../../runtime.js";
 
 /**
  * A Level is the importance or severity of a log event.

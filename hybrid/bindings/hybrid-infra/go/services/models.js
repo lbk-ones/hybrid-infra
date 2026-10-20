@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Create as $Create } from "/hybrid/runtime.js";
+import { Create as $Create } from "../../../../runtime.js";
 
 export class ConfirmReq {
     /**
@@ -14,7 +14,6 @@ export class ConfirmReq {
     constructor($$source = {}) {
         if (!("title" in $$source)) {
             /**
-             * 标题
              * @member
              * @type {string}
              */
@@ -22,7 +21,6 @@ export class ConfirmReq {
         }
         if (!("body" in $$source)) {
             /**
-             * 内容体
              * @member
              * @type {string}
              */
@@ -44,11 +42,18 @@ export class ConfirmReq {
         }
         if (!("place" in $$source)) {
             /**
-             * 位置 center、bottomLeft、bottomRight、topRight、topLeft
              * @member
              * @type {string}
              */
             this["place"] = "";
+        }
+        if (!("timeoutSeconds" in $$source)) {
+            /**
+             * <= 0 uses the 300 second default.
+             * @member
+             * @type {number}
+             */
+            this["timeoutSeconds"] = 0;
         }
 
         Object.assign(this, $$source);
@@ -73,7 +78,7 @@ export class ShowReq {
     constructor($$source = {}) {
         if (!("body" in $$source)) {
             /**
-             * 内容体
+             * Trusted HTML only; may contain event handlers.
              * @member
              * @type {string}
              */
@@ -81,7 +86,6 @@ export class ShowReq {
         }
         if (!("place" in $$source)) {
             /**
-             * 位置 center、bottomLeft、bottomRight、topRight、topLeft
              * @member
              * @type {string}
              */
