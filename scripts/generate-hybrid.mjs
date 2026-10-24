@@ -6,7 +6,15 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// 同步执行给定的 Wails CLI 子命令，并把输出保留在构建日志中；任一步失败立即停止导出。
 const run = (args) => execFileSync('wails3', args, { cwd: root, stdio: 'inherit' });
+/** 为固定 Wails 版本 CLI 导出的 WML 初始化入口补充 DOM 守卫；不创建虚假的 window，浏览器中的原行为保持一致。 */
+function guardRuntimeDOM(source, filename) {
+ const pattern = /window\.wails\s*=\s*([A-Za-z_$][\w$]*);\s*([A-Za-z_$][\w$]*)\(\);/g;
+ const matches = [...source.matchAll(pattern)];
+ if (matches.length !== 1) throw new Error(`Upstream runtime changed: review DOM bootstrap in ${filename}.`);
+ return source.replace(pattern, 'if(typeof window!=="undefined" && typeof document!=="undefined"){window.wails=$1;$2();}');
+}
 const goVersion = execFileSync('go', ['list', '-m', '-f', '{{.Version}}', 'github.com/wailsapp/wails/v3'], { cwd: root, encoding: 'utf8' }).trim();
 const cli = spawnSync('wails3', ['version'], { cwd: root, encoding: 'utf8' });
 if (cli.error || cli.status !== 0) throw cli.error || new Error(cli.stderr);
@@ -27,9 +35,10 @@ try {
   const target = path.join(output, filename);
   const source = await readFile(target, 'utf8');
   if (!source.includes('window.location.origin')) throw new Error(`Upstream runtime changed: review ${filename} before exporting.`);
-  await writeFile(target, source.replaceAll('window.location.origin', runtimeOrigin));
+  await writeFile(target, guardRuntimeDOM(source, filename).replaceAll('window.location.origin', runtimeOrigin));
  }
  const hash = createHash('sha256');
+ // 递归改写生成绑定中的 runtime 导入为相对路径，并累积稳定的绑定内容哈希，便于独立部署和一致性校验。
  async function rewrite(dir) {
   for (const entry of (await readdir(dir, { withFileTypes: true })).sort((a,b) => a.name.localeCompare(b.name, 'en'))) {
    const target = path.join(dir, entry.name);
@@ -46,6 +55,8 @@ try {
  }
  await rewrite(bindings);
  await cp(path.join(root, 'scripts/hybrid-client.js'), path.join(output, 'client.js'));
+ await cp(path.join(root, 'frontend/src/sdk-core.js'), path.join(output, 'sdk-core.js'));
+ for (const filename of ['environment.js', 'events-client.js', 'shell-client.js', 'ui-client.js']) await cp(path.join(root, 'frontend/src', filename), path.join(output, filename));
  await writeFile(path.join(output, 'manifest.json'), JSON.stringify({ wailsVersion: goVersion, bindingsSHA256: hash.digest('hex') }, null, 2) + '\n');
  // No shell rm/sed/eval. Only replace the repository-owned generated directory.
  const destination = path.join(root, 'hybrid');

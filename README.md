@@ -67,7 +67,7 @@ KV 写入该目录的 `store.json`，不再写入启动工作目录。**原根�
 ```shell
 go test ./...
 go vet ./...
-node --test scripts/hybrid-client.test.mjs
+node --test scripts/hybrid-client.test.mjs scripts/sdk-core.test.mjs scripts/bridge-client.test.mjs
 wails3 task build
 ```
 
@@ -75,4 +75,7 @@ Go 弹框边界测试会调用 Node，因此运行 Go 测试也需要 Node.js。
 
 - [架构与维护约定](docs/architecture.md)
 - [前端接入说明](docs/frontend-integration.md)
+- [第一阶段宿主能力、配置与验收](docs/phase1-host.md)
+- [第二阶段桌面能力、授权与 SDK 接入](docs/phase2-desktop.md)
+- [Shell、全局缓存、事件回调与环境检测](docs/business-bridge.md)
 - [本次升级、兼容变化与验证记录](docs/upgrade-2026-10-20.md)

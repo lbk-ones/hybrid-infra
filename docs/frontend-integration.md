@@ -2,7 +2,7 @@
 
 ## 两种接入方式
 
-**内置前端**：使用仓库的 `frontend/`，从 `frontend/bindings` 导入服务，用 `@wailsio/runtime` 导入事件、窗口等 API。构建后资源嵌入可执行文件，默认 `url: "/"`。可以用自己的构建产物替换 `frontend/dist`，但需要保留 Alert.html、Confirm.html、Show.html 及其 `/wails/runtime.js` 引用，原生弹框依赖它们。SPA history 路由需要自行配置资源回退，或使用 hash 路由。
+**内置前端**：使用仓库的 `frontend/`，从 `frontend/bindings` 导入服务，用 `@wailsio/runtime` 导入事件、窗口等 API。构建后资源嵌入可执行文件，默认 `url: "/"`。使用自己的构建产物时，需要保留 Alert.html、Confirm.html、Show.html、dialog.css，以及 shell/status.html、shell/manage.html 和它们引用的资源。SPA history 路由需要自行配置资源回退，或使用 hash 路由。
 
 **外部前端**：网页独立部署，外壳 `settings.json` 的 `url` 指向其 HTTP(S) 地址。前端复制完整的 `hybrid/` 作为静态文件，不需要依赖本仓库的 Vite、目录结构或框架。弹框仍由外壳自带的 HTML 承载。
 
@@ -101,12 +101,18 @@ configureHybrid({
 });
 ```
 
-生成包保留 Wails 原始 `setTransport` 接口。适配器必须处理响应、取消调用及窗口路由；前端事件接收也需要正确交给 Wails 的事件分发机制。这里没有内置 WebSocket 服务或跨网络宿主发现机制。`setTransport` 面向 runtime RPC，流式传输等独立通道应另行验证。
+生成包保留 Wails 原始 `setTransport` 接口。适配器必须处理响应、取消调用、窗口路由与等效授权；前端事件接收也需要正确交给 Wails 的事件分发机制。这里没有内置 WebSocket 服务或跨网络宿主发现机制。`setTransport` 面向 runtime RPC，流式传输等独立通道应另行验证。
 
 ## 信任边界
 
 Alert/Confirm 按纯文本显示，Show 明确接受受信任 HTML；JSON 序列化防止 HTML 字符串打断外层脚本，但不会清洗 Show 中的 HTML 或事件处理器。
 
-CORS 按配置允许跨源请求，支持 runtime 的分块上传请求头；它不是用户认证、导航控制或按服务授权。打开的远程页面属于宿主信任范围，勿将不可信网页当作隔离沙箱。远程页面若使用 CSP，需要允许所用模块路径与连接地址。不要同时加载不同版本或重复实例的 Wails runtime，以免事件接收器被覆盖。
+第一阶段新增独立于 CORS 的运行时来源与能力授权，直接调用 bindings 也受检查。通过 permissions 可为来源覆盖 host、windows、ui、ui.html、store、log、lifecycle、events。单次 RPC 最大 1 MiB，分块请求明确拒绝。原始 Wails Application、Clipboard、Dialog、Browser 等子系统暂不开放，使用宿主接口完成退出和外链操作。完整 SDK、导航策略与兼容变化见[第一阶段说明](phase1-host.md)。这不是用户认证或任意网页隔离沙箱。远程页面若使用 CSP，需要允许所用模块路径与连接地址。不要同时加载不同版本或重复实例的 Wails runtime，以免事件接收器被覆盖。
 
 以上 HTTP 桥接配置面向桌面 WebView。Wails 的 `server` 构建具有独立来源校验和通信约定，不能把本项目桌面 CORS 配置当作远程服务部署方案。
+
+## 第二阶段桌面接口
+
+`hybrid/client.js` 新增 `Desktop` 导出，支持文件凭证、目录、下载、剪贴板、原生通知、快捷键、协议、设置和系统凭据。所有能力默认关闭，按来源显式授权；方法、示例及平台限制见 [第二阶段接入](phase2-desktop.md)。
+
+`Shell`、`Cache`、`Events` 和 `Hybrid.detectEnvironment` 的配置、回调语义及请求响应示例见 [业务桥接](business-bridge.md)。新的 Events 以会话和来源隔离消息，不依赖 Runtime.Events 的全窗口广播。

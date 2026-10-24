@@ -8,6 +8,9 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as host$0 from "../host/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as utils$0 from "../utils/models.js";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -15,7 +18,7 @@ import * as utils$0 from "../utils/models.js";
 import * as $models from "./models.js";
 
 /**
- * Alert displays plain text. destroy is in seconds; zero keeps the dialog open.
+ * Alert 检查 ui 权限后显示纯文本消息；destroy 的单位为秒，非正数表示不自动关闭。
  * @param {string} title
  * @param {string} body
  * @param {number} destroy
@@ -27,8 +30,26 @@ export function Alert(title, body, destroy, place) {
 }
 
 /**
- * Confirm returns "1" for OK, "0" for cancellation, closure or timeout.
- * The context is supplied by Wails and supports JS CancellablePromise.cancel().
+ * AlertWithOptions 显示纯文本消息并支持 draggable 属性，destroy 单位为秒，非正数保留旧版不自动关闭的语义。
+ * @param {$models.AlertReq} req
+ * @returns {$CancellablePromise<void>}
+ */
+export function AlertWithOptions(req) {
+    return $Call.ByID(762124583, req);
+}
+
+/**
+ * CloseNotification 允许通知自身或同来源的创建窗口提前关闭通知，不能关闭其他业务窗口的通知。
+ * @param {string} id
+ * @returns {$CancellablePromise<void>}
+ */
+export function CloseNotification(id) {
+    return $Call.ByID(1467149854, id);
+}
+
+/**
+ * Confirm 检查 ui 权限后显示确认框，并等待结果或取消；返回字符串 1 表示确认，0 表示取消、关闭或超时。
+ * 退出等待时统一清理事件监听、计时上下文及弹框，避免遗留后台等待。
  * @param {$models.ConfirmReq} req
  * @returns {$CancellablePromise<string>}
  */
@@ -37,19 +58,42 @@ export function Confirm(req) {
 }
 
 /**
- * OpenWindowByUrl opens an internal route or a remote HTTP(S) page.
- * @param {utils$0.NewWindowOptions} option
+ * NotificationReady 只允许通知窗口自己报告就绪，停止加载兜底计时器并开始真实展示倒计时，重复报告不会延长寿命。
+ * @param {string} id
  * @returns {$CancellablePromise<void>}
  */
-export function OpenWindowByUrl(option) {
-    return $Call.ByID(1291584495, option);
+export function NotificationReady(id) {
+    return $Call.ByID(214660415, id);
 }
 
 /**
- * Show displays trusted application HTML. Do not pass untrusted/user HTML here.
+ * Notify 创建原生通知并返回编号；同一工作区与位置的通知顺序堆叠，加载就绪后再开始展示时长计时。
+ * @param {$models.NotifyReq} req
+ * @returns {$CancellablePromise<string>}
+ */
+export function Notify(req) {
+    return $Call.ByID(3116606898, req);
+}
+
+/**
+ * OpenWindowByUrl 保留旧版窗口打开入口，检查 windows 权限后交给统一宿主管理器执行复用、导航策略和权限继承。
+ * @param {utils$0.NewWindowOptions} option
+ * @returns {$CancellablePromise<host$0.WindowInfo>}
+ */
+export function OpenWindowByUrl(option) {
+    return $Call.ByID(1291584495, option).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
+}
+
+/**
+ * Show 检查 ui.html 权限后展示自定义 HTML 浮窗；内容不做 HTML 清洗，只能传入受信任的应用代码。
  * @param {$models.ShowReq} req
  * @returns {$CancellablePromise<void>}
  */
 export function Show(req) {
     return $Call.ByID(794715274, req);
 }
+
+// Private type creation functions
+const $$createType0 = host$0.WindowInfo.createFrom;

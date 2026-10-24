@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+// TestWindowPositionWithOffsetWorkArea 验证带偏移及负坐标的工作区角落定位，同时检查未知位置和超大窗口的回退行为。
 func TestWindowPositionWithOffsetWorkArea(t *testing.T) {
 	box := cross.BOX{Left: -1920, Top: 40, Width: 1920, Height: 1040}
 	for _, tc := range []struct {

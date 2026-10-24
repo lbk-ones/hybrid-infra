@@ -6,6 +6,7 @@ import (
 	"testing"
 )
 
+// TestExplicitConfigAndDataDirectory 验证环境变量指定的配置文件和用户数据目录生效，并自动纳入远程主页面来源。
 func TestExplicitConfigAndDataDirectory(t *testing.T) {
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "custom.json")
@@ -31,6 +32,7 @@ func TestExplicitConfigAndDataDirectory(t *testing.T) {
 	}
 }
 
+// TestInvalidConfigFailsExplicitly 验证错误的 JSON、危险地址、无效尺寸和来源配置会明确报错，显式配置文件缺失也不会被静默忽略。
 func TestInvalidConfigFailsExplicitly(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "settings.json")
 	t.Setenv("HYBRID_SETTINGS", path)
@@ -50,6 +52,7 @@ func TestInvalidConfigFailsExplicitly(t *testing.T) {
 	}
 }
 
+// TestUserConfigWorksOutsideCheckout 验证从非项目目录启动程序时，仍可读取稳定用户数据目录中的配置文件。
 func TestUserConfigWorksOutsideCheckout(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("HYBRID_SETTINGS", "")
@@ -61,5 +64,29 @@ func TestUserConfigWorksOutsideCheckout(t *testing.T) {
 	config, err := New().Parse()
 	if err != nil || config.Title != "user config" {
 		t.Fatalf("config=%v err=%v", config, err)
+	}
+}
+
+// TestPhaseOneDefaultsAndValidation 验证第一阶段配置的默认值，以及关闭方式、导航来源、超时和能力名称等非法配置的拒绝行为。
+func TestPhaseOneDefaultsAndValidation(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "settings.json")
+	t.Setenv("HYBRID_SETTINGS", path)
+	if err := os.WriteFile(path, []byte(`{}`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	config, err := New().Parse()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !config.SingleInstance || !config.RememberWindows || config.CloseBehavior != "exit" || config.ExternalLinks != "browser" || config.LoadTimeoutSeconds != 30 {
+		t.Fatalf("unexpected phase-one defaults: %+v", config)
+	}
+	for _, input := range []string{`{"closeBehavior":"minimise"}`, `{"externalLinks":"allow"}`, `{"minWidth":100}`, `{"loadTimeoutSeconds":0}`, `{"navigationOrigins":["*"]}`, `{"permissions":{"https://app.test":["unknown-capability"]}}`} {
+		if err := os.WriteFile(path, []byte(input), 0600); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := New().Parse(); err == nil {
+			t.Errorf("accepted invalid settings: %s", input)
+		}
 	}
 }

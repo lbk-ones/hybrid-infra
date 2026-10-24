@@ -6,6 +6,7 @@ import (
 	"testing"
 )
 
+// TestFrontendOriginPolicy 验证 CORS 只放行同源和配置允许的来源，并正确处理预检请求及所需请求头。
 func TestFrontendOriginPolicy(t *testing.T) {
 	handler := AssetMiddleware([]string{"https://app.example.com"})(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusAccepted) }))
 	for _, tc := range []struct {

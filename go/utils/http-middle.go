@@ -6,8 +6,7 @@ import (
 	"strings"
 )
 
-// AssetMiddleware permits the configured remote frontends to use the desktop
-// asset server. CORS is an origin policy, not authentication or a service sandbox.
+// AssetMiddleware 根据配置处理跨源访问与预检请求；只允许同源或显式登记的来源，具体 RPC 能力授权由 host.Policy 单独执行。
 func AssetMiddleware(origins []string) func(http.Handler) http.Handler {
 	allowed := make(map[string]bool, len(origins))
 	for _, origin := range origins {

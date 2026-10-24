@@ -1,5 +1,13 @@
 # 架构与维护约定
 
+## 阅读宿主管理代码
+
+`go/host` 中的 host 指承载网页的 Go/Wails 桌面进程。该目录把窗口、加载、任务、权限和状态保存集中管理，让不同业务前端复用同一套桌面行为。
+
+建议先看 `go/host/doc.go` 的包说明，再按职责阅读：`controller.go` 负责窗口与应用生命周期，`policy.go` 负责调用来源和能力授权，`state.go` 负责窗口状态保存与恢复，`errors.go` 负责统一错误。`go/services/host.go` 则是前端服务入口，检查权限后委托宿主管理器操作。
+
+后续所有新增或修改的手写函数、方法都必须有易懂的中文注释，说明用途及必要的参数、返回值和边界。完整约定见根目录 `AGENTS.md`；生成文件通过源注释和生成器同步，不直接修改。
+
 ## 启动与调用链
 
 ```text
@@ -16,10 +24,12 @@ services.Register     JS bindings / runtime
 
 - main.go：配置校验、资产中间件、主窗口、服务注册、随应用上下文停止的时间事件。
 - go/setting：配置查找、验证、稳定的数据目录。无配置可用默认值；显式指定错误文件或无效内容时启动失败。
+- go/host：具名窗口管理、原子状态持久化、单实例唤醒、退出任务检查、页面加载看门狗与运行时来源/能力授权。
+- go/services/host.go：HostService、WindowService 的授权入口；业务前端可经 SDK 握手查询能力。
 - go/services/ui.go：弹框内容序列化、Confirm 的请求上下文与事件生命周期。
 - go/utils/cw.go：集中创建窗口、尺寸与位置回退、全屏状态。
 - go/utils/cross：直接使用 Wails ScreenManager，避免维护错误的 Win32/Cocoa/X11 重复实现。
-- frontend：用于本地演示与内置弹框资源，不承担业务框架约束。
+- frontend：本地工作台、宿主管理、加载与失败恢复页面及内置弹框，不承担业务框架约束。Vite 多入口必须保留 shell/status.html 和 shell/manage.html。
 - scripts/generate-hybrid.mjs：生成并改写独立前端包，使用 Node 文件 API，移除对 Bash/sed/eval 的依赖。
 - scripts/hybrid-client.js：生成包 facade 的维护源；修改后重新导出。
 
@@ -48,3 +58,7 @@ F12 由主窗口配置 debug 控制，子窗口使用各自的 f12DevTools 选�
 5. 按升级文档的人工验收清单在目标 WebView 上检查弹框、窗口与外部接入。
 
 Android/iOS 构建文件延续仓库原有模板，本次没有完成移动端迁移或验收；不能把目录存在当作支持承诺。
+
+## 第二阶段扩展
+
+`go/host/desktop.go` 管理文件凭证和偏好，`downloads.go` 管理受退出保护的后台下载，`integration.go` 管理路由、通知、快捷键与设置，`native_windows.go` 集中封装 Windows 剪贴板、凭据库、协议和资源管理器接口。非 Windows 的未适配能力明确返回 `E_UNSUPPORTED`。前端只通过 `go/services/desktop.go` 的逐方法授权入口访问，不直接绑定宿主管理器。授权和使用说明见 [第二阶段](phase2-desktop.md)。

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/shell.css" />
+    <title>宿主管理 · Hybrid</title>
+  </head>
+  <body class="manage-page">
+    <header class="manage-header">
+      <div>
+        <p class="eyebrow">HYBRID / HOST CONSOLE</p>
+        <h1>宿主管理</h1>
+        <p>查看真实运行状态，管理窗口与未完成任务。</p>
+      </div>
+      <nav><a href="/shell/desktop.html">桌面能力与下载</a> · <a href="/">能力工作台 ↗</a></nav>
+    </header>
+    <main class="manage-main">
+      <div id="notice" role="status" aria-live="polite"></div>
+      <section class="host-summary">
+        <div><small>外壳版本</small><strong id="host-version">—</strong></div>
+        <div>
+          <small>协议 / 平台</small><strong id="host-platform">—</strong>
+        </div>
+        <div><small>关闭行为</small><strong id="host-close">—</strong></div>
+        <div><small>单实例</small><strong id="host-single">—</strong></div>
+      </section>
+      <section class="manage-panel">
+        <div class="panel-heading">
+          <h2>已授权能力</h2>
+          <span id="connection-state">连接中</span>
+        </div>
+        <div id="capabilities" class="capabilities"></div>
+      </section>
+      <section class="manage-panel">
+        <div class="panel-heading">
+          <h2>窗口管理</h2>
+          <div class="actions">
+            <button id="open-window">打开示例窗口</button
+            ><button id="refresh">刷新</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>窗口 ID / 标题</th>
+                <th>页面</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="windows"></tbody>
+          </table>
+        </div>
+      </section>
+      <section class="manage-panel">
+        <div class="panel-heading">
+          <h2>未完成任务</h2>
+          <div class="actions">
+            <button id="begin-task">开始示例任务</button
+            ><button id="end-task" disabled>结束示例任务</button>
+          </div>
+        </div>
+        <p class="panel-description">
+          示例任务期间尝试关闭窗口，可验证退出保护。实际业务应在任务完成或取消后主动释放。
+        </p>
+        <div id="tasks"></div>
+      </section>
+    </main>
+    <script type="module" src="/src/shell-manage.js"></script>
+  </body>
+</html>

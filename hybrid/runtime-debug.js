@@ -1632,8 +1632,7 @@ function Reload() {
 }
 
 // desktop/compiled/main.js
-window.wails = index_exports;
-Enable();
+if(typeof window!=="undefined" && typeof document!=="undefined"){window.wails=index_exports;Enable();}
 if (true) {
   debugLog("Wails Runtime Loaded");
 }

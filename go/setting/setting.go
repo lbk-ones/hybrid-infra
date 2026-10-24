@@ -7,23 +7,38 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 )
 
 type Setting struct{}
 type PkgInfo struct {
-	Title          string   `json:"title"`
-	Url            string   `json:"url"`
-	Debug          bool     `json:"debug"`
-	Frameless      bool     `json:"frameless"`
-	Width          int      `json:"width"`
-	Height         int      `json:"height"`
-	LogLevel       int      `json:"logLevel"`
-	AllowedOrigins []string `json:"allowedOrigins"` // Additional frontends allowed to access local assets/runtime.
+	ShellPrograms       []string            `json:"shellPrograms"` // 允许程序模式执行的程序；启动时解析为固定绝对路径，默认空列表。
+	Title               string              `json:"title"`
+	Url                 string              `json:"url"`
+	Debug               bool                `json:"debug"`
+	Frameless           bool                `json:"frameless"`
+	Width               int                 `json:"width"`
+	Height              int                 `json:"height"`
+	LogLevel            int                 `json:"logLevel"`
+	AllowedOrigins      []string            `json:"allowedOrigins"` // 额外允许访问本地资源和 runtime 的前端来源。
+	SingleInstance      bool                `json:"singleInstance"`
+	TrayEnabled         bool                `json:"trayEnabled"`   // 可独立于关闭行为开启托盘；hide 模式仍强制提供托盘入口。
+	CloseBehavior       string              `json:"closeBehavior"` // exit 表示关闭主窗口时退出，hide 表示隐藏到托盘。
+	RememberWindows     bool                `json:"rememberWindows"`
+	MinWidth            int                 `json:"minWidth"`
+	MinHeight           int                 `json:"minHeight"`
+	LoadTimeoutSeconds  int                 `json:"loadTimeoutSeconds"`
+	NavigationOrigins   []string            `json:"navigationOrigins"`
+	ExternalLinks       string              `json:"externalLinks"`       // browser 表示交给系统浏览器打开外链，block 表示拒绝。
+	Permissions         map[string][]string `json:"permissions"`         // 来源对应的显式能力列表，覆盖默认授权；空列表表示全部拒绝。
+	DesktopCapabilities []string            `json:"desktopCapabilities"` // 仅为内置页面开启的第二阶段能力；远程页面仍需显式 permissions。
 }
 
+// New 创建配置读取器；实际读取、默认值填充和校验由 Parse 执行。
 func New() *Setting { return &Setting{} }
 
-// DataDir is independent of the process working directory.
+// DataDir 确定与启动工作目录无关的用户数据目录；优先使用 HYBRID_DATA_DIR，否则使用系统配置目录下的 hybrid-infra。
 func DataDir() (string, error) {
 	if dir := os.Getenv("HYBRID_DATA_DIR"); dir != "" {
 		return filepath.Abs(dir)
@@ -35,8 +50,7 @@ func DataDir() (string, error) {
 	return filepath.Join(dir, "hybrid-infra"), nil
 }
 
-// ConfigPath resolves an explicit override, user config, executable sibling,
-// then a development checkout (identified by go.mod). Missing defaults are OK.
+// ConfigPath 按环境变量、用户数据目录、程序目录和开发仓库的顺序查找配置文件；未显式指定且均未找到时返回空路径。
 func ConfigPath() (string, error) {
 	if path := os.Getenv("HYBRID_SETTINGS"); path != "" {
 		return filepath.Abs(path)
@@ -66,8 +80,9 @@ func ConfigPath() (string, error) {
 	return "", nil
 }
 
+// Parse 填充默认配置后读取选中的 JSON 文件并校验；没有配置文件时使用默认值，显式配置错误时返回错误。
 func (*Setting) Parse() (*PkgInfo, error) {
-	config := &PkgInfo{Title: "App", Url: "/"}
+	config := &PkgInfo{Title: "Hybrid App", Url: "/", SingleInstance: true, CloseBehavior: "exit", RememberWindows: true, MinWidth: 800, MinHeight: 600, LoadTimeoutSeconds: 30, ExternalLinks: "browser"}
 	path, err := ConfigPath()
 	if err != nil {
 		return nil, err
@@ -88,7 +103,28 @@ func (*Setting) Parse() (*PkgInfo, error) {
 	return config, nil
 }
 
+// validate 检查窗口尺寸、关闭方式、加载超时、导航地址和能力名称等配置，拒绝无法识别或不安全的取值。
 func (p *PkgInfo) validate() error {
+	if len(p.ShellPrograms) > 64 {
+		return errors.New("shellPrograms supports at most 64 programs")
+	}
+	for _, program := range p.ShellPrograms {
+		if len(program) == 0 || len(program) > 512 || strings.ContainsAny(program, "\x00\r\n") {
+			return errors.New("shellPrograms contains an invalid program")
+		}
+	}
+	if p.CloseBehavior != "exit" && p.CloseBehavior != "hide" {
+		return errors.New("closeBehavior must be exit or hide")
+	}
+	if p.ExternalLinks != "browser" && p.ExternalLinks != "block" {
+		return errors.New("externalLinks must be browser or block")
+	}
+	if p.MinWidth < 320 || p.MinHeight < 240 {
+		return errors.New("minWidth/minHeight must be at least 320/240")
+	}
+	if p.LoadTimeoutSeconds < 1 || p.LoadTimeoutSeconds > 300 {
+		return errors.New("loadTimeoutSeconds must be between 1 and 300")
+	}
 	if p.Width < 0 || p.Height < 0 {
 		return errors.New("width and height must be non-negative")
 	}
@@ -103,7 +139,23 @@ func (p *PkgInfo) validate() error {
 		!(parsed.Scheme == "" && parsed.Host == "" && len(p.Url) > 0 && p.Url[0] == '/') {
 		return errors.New("url must be an absolute HTTP(S) URL or a local path starting with /")
 	}
-	for _, origin := range p.AllowedOrigins {
+	origins := append(append([]string{}, p.AllowedOrigins...), p.NavigationOrigins...)
+	permissionSets := map[string][]string{}
+	for origin, capabilities := range p.Permissions {
+		origins = append(origins, origin)
+		permissionSets[origin] = capabilities
+	}
+	permissionSets["desktopCapabilities"] = p.DesktopCapabilities
+	for _, capabilities := range permissionSets {
+		for _, capability := range capabilities {
+			switch capability {
+			case "host", "windows", "ui", "ui.html", "store", "log", "lifecycle", "events", "files", "downloads", "clipboard", "notifications", "shortcuts", "settings", "credentials", "protocol", "shell", "shell.script", "cache", "cache.global", "events.global":
+			default:
+				return fmt.Errorf("unknown capability %q", capability)
+			}
+		}
+	}
+	for _, origin := range origins {
 		u, err := url.Parse(origin)
 		if err != nil || u == nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" || u.User != nil || u.Path != "" || u.RawQuery != "" || u.Fragment != "" {
 			return fmt.Errorf("invalid allowed origin %q: use scheme://host[:port] without a trailing slash", origin)
@@ -112,11 +164,20 @@ func (p *PkgInfo) validate() error {
 	return nil
 }
 
-// TrustedOrigins includes the configured main remote frontend automatically.
+// Validate 供设置服务在保存前复用启动校验；任何无效配置都不会写入磁盘。
+func (p *PkgInfo) Validate() error { return p.validate() }
+
+// TrustedOrigins 汇总可信页面来源，具体能力仍由来源权限策略计算。
 func (p *PkgInfo) TrustedOrigins() []string {
 	origins := append([]string{}, p.AllowedOrigins...)
 	if u, err := url.Parse(p.Url); err == nil && u.Host != "" {
 		origins = append(origins, u.Scheme+"://"+u.Host)
 	}
+	keys := make([]string, 0, len(p.Permissions))
+	for origin := range p.Permissions {
+		keys = append(keys, origin)
+	}
+	sort.Strings(keys)
+	origins = append(origins, keys...)
 	return origins
 }

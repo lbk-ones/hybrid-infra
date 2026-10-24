@@ -7,6 +7,7 @@
 import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "../../../../runtime.js";
 
 /**
+ * Greet 返回包含传入姓名的问候文本，作为前端调用 Go 服务的最小示例。
  * @param {string} name
  * @returns {$CancellablePromise<string>}
  */

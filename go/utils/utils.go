@@ -27,7 +27,7 @@ type NewWindowOptions struct {
 	F12DevTools     bool   `json:"f12DevTools"`     // f12DevTools
 }
 
-// StrWithDefault 工具函数1：字符串空值判断，返回原值或默认值（替代 str == "" ? str : def）
+// StrWithDefault 去掉字符串首尾空白；仍有内容时返回清理后的字符串，否则返回默认值。
 func StrWithDefault(str, def string) string {
 	trim := strings.TrimSpace(str)
 	if trim != "" {
@@ -36,13 +36,13 @@ func StrWithDefault(str, def string) string {
 	return def
 }
 
-// GetJsonStr
+// GetJsonStr 把对象序列化成 JSON 字符串；此兼容工具不返回序列化错误，需要检查错误时应直接调用 json.Marshal。
 func GetJsonStr(obj interface{}) string {
 	bytes, _ := json.Marshal(obj)
 	return string(bytes)
 }
 
-// Screenshot 截图
+// Screenshot 按主显示器工作区的物理像素截图，并以 PNG 格式写入指定路径；捕获或保存失败时返回错误。
 func Screenshot(path string) error {
 	box, err := cross.GetPhysicalScreenSize()
 	if err != nil {

@@ -1,92 +1,76 @@
 package main
 
 import (
+	"crypto/sha256"
 	"embed"
-	raw_message_handler "hybrid-infra/go/raw-message-handler"
+	"fmt"
+	"log"
+	"log/slog"
+	"os"
+	"time"
+
+	"hybrid-infra/go/host"
 	"hybrid-infra/go/services"
 	"hybrid-infra/go/setting"
 	"hybrid-infra/go/utils"
-	"log"
-	"log/slog"
-	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
 //go:embed all:frontend/dist
 var assets embed.FS
 
-func init() {
-	application.RegisterEvent[string]("time")
-}
+// init 向 Wails 注册 time 事件的数据类型，使前端接收的时间事件按字符串处理。
+func init() { application.RegisterEvent[string]("time") }
 
-// main function serves as the application's entry point. It initializes the application, creates a window,
+// main 读取配置并组装 Wails 应用、权限中间件、宿主管理器和前端服务；按需启用单实例及托盘，最后启动应用事件循环。
 func main() {
-
-	// get pkg info
-	pkgInfo, err := setting.New().Parse()
+	config, err := setting.New().Parse()
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	app := application.New(application.Options{
-		Name:        "hybrid-infra",
-		Description: "A HybridProjects application",
-		Assets: application.AssetOptions{
-			Handler:    application.BundledAssetFileServer(assets),
-			Middleware: utils.AssetMiddleware(pkgInfo.TrustedOrigins()),
-		},
-		LogLevel: slog.Level(pkgInfo.LogLevel),
-		Mac: application.MacOptions{
-			ApplicationShouldTerminateAfterLastWindowClosed: true,
-		},
-		RawMessageHandler: func(window application.Window, message string, originInfo *application.OriginInfo) {
-			raw_message_handler.NewRawMessageHandler().HandleMessage(window, message, originInfo)
-		},
-	})
-
-	state := application.WindowStateMaximised
-	if pkgInfo.Width > 0 && pkgInfo.Height > 0 {
-		state = application.WindowStateNormal
-	}
-	app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Name:       "main-window",
-		Title:      pkgInfo.Title,
-		StartState: state,
-		Width:      pkgInfo.Width,
-		Height:     pkgInfo.Height,
-		// 是否无边框模式
-		Frameless: pkgInfo.Frameless,
-		Mac: application.MacWindow{
-			InvisibleTitleBarHeight: 50,
-			Backdrop:                application.MacBackdropTranslucent,
-			TitleBar:                application.MacTitleBarHiddenInset,
-		},
-		BackgroundColour: application.NewRGB(255, 255, 255),
-		URL:              pkgInfo.Url,
-		KeyBindings: map[string]func(window application.Window){
-			"F12": func(window application.Window) {
-				if pkgInfo.Debug {
-					window.OpenDevTools()
-				}
-			},
-			"F5": func(window application.Window) {
-				window.Reload()
-			},
-			"ctrl+f5": func(window application.Window) {
-				window.ForceReload()
-			},
-			"shift+ctrl+c": func(window application.Window) {
-				window.Center()
-			},
-		},
-	})
-	// register service
-	if err := services.Register(app); err != nil {
+	dir, err := setting.DataDir()
+	if err != nil {
 		log.Fatal(err)
 	}
-
-	// 每一秒向客户端发送当前时间
+	controller := host.New(config, dir)
+	options := application.Options{
+		Name: "hybrid-infra", Description: "Hybrid desktop host",
+		Assets:   application.AssetOptions{Handler: application.BundledAssetFileServer(assets), Middleware: application.ChainMiddleware(utils.AssetMiddleware(config.TrustedOrigins()), controller.Policy.Middleware)},
+		LogLevel: slog.Level(config.LogLevel), MarshalError: host.MarshalError,
+		Mac:               application.MacOptions{ApplicationShouldTerminateAfterLastWindowClosed: config.CloseBehavior != "hide"},
+		Windows:           application.WindowsOptions{DisableQuitOnLastWindowClosed: config.CloseBehavior == "hide"},
+		Linux:             application.LinuxOptions{DisableQuitOnLastWindowClosed: config.CloseBehavior == "hide"},
+		ShouldQuit:        controller.ShouldQuit,
+		RawMessageHandler: controller.NativeMessage,
+	}
+	if config.SingleInstance {
+		instanceKey := fmt.Sprintf("hybrid-infra-%x", sha256.Sum256([]byte(dir)))
+		// 第二实例只转交固定协议路由，其余启动参数不作为系统命令执行。
+		options.SingleInstance = &application.SingleInstanceOptions{UniqueID: instanceKey, OnSecondInstanceLaunch: func(data application.SecondInstanceData) {
+			controller.WakeMain()
+			controller.HandleActivation(data.Args)
+		}}
+	}
+	app := application.New(options)
+	controller.Attach(app)
+	windowOptions := controller.InitialOptions()
+	windowOptions.Mac = application.MacWindow{InvisibleTitleBarHeight: 50, Backdrop: application.MacBackdropTranslucent, TitleBar: application.MacTitleBarHiddenInset}
+	mainWindow := app.Window.NewWithOptions(windowOptions)
+	controller.TrackMain(mainWindow)
+	app.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) { controller.HandleActivation(os.Args[1:]) })
+	app.Event.OnApplicationEvent(events.Common.ApplicationLaunchedWithUrl, func(e *application.ApplicationEvent) { controller.HandleActivation([]string{e.Context().URL()}) })
+	if err = services.Register(app, controller); err != nil {
+		log.Fatal(err)
+	}
+	if config.TrayEnabled || config.CloseBehavior == "hide" {
+		icon, readErr := assets.ReadFile("frontend/dist/wails.png")
+		if readErr != nil {
+			log.Fatal(readErr)
+		}
+		controller.InstallTray(icon)
+	}
 	go func() {
 		ticker := time.NewTicker(time.Second)
 		defer ticker.Stop()
@@ -94,17 +78,13 @@ func main() {
 			select {
 			case now := <-ticker.C:
 				app.Event.Emit("time", now.Format("2006/01/02 15:04:05"))
+				controller.UpdateTrayStatus()
 			case <-app.Context().Done():
 				return
 			}
 		}
 	}()
-
-	// Run the application. This blocks until the application has been exited.
-	err = app.Run()
-
-	// If an error occurred while running the application, log it and exit.
-	if err != nil {
+	if err = app.Run(); err != nil {
 		log.Fatal(err)
 	}
 }

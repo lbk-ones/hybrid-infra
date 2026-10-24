@@ -29,6 +29,7 @@
       </div>
     </div>
     <script>
+      // 向当前确认框专属事件回复 1 或 0；没有事件标识时只关闭窗口，供独立预览使用。
       function answer(value) {
         const event = document.getElementById("confirm-id").textContent;
         if (event) window.wails.Events.Emit(event, value);

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -21,6 +22,30 @@ globalThis.fetch = async (url, options) => {
  return new Response(JSON.stringify('1'), { headers: { 'Content-Type': 'application/json' } });
 };
 const { configureHybrid, Runtime, UI } = await import('../hybrid/client.js');
+
+// 用无 window/document 的独立 Node 进程验证导出 SDK 可直接在 SSR 中导入，不能仅靠测试进程中的模拟浏览器掩盖问题。
+test('exported SDK imports safely during SSR and detects server environment', () => {
+ const source = "const { Hybrid } = await import('./hybrid/client.js'); console.log(JSON.stringify({ hint: Hybrid.isDesktopShell(), environment: await Hybrid.detectEnvironment() }));";
+ const output = execFileSync(process.execPath, ['--input-type=module', '-e', source], { cwd: root, encoding: 'utf8', timeout: 5000 });
+ const result = JSON.parse(output.trim());
+ assert.equal(result.hint, false);
+ assert.equal(result.environment.kind, 'server');
+ assert.equal(result.environment.connected, false);
+});
+
+// 验证新增桌面绑定通过同一可配置传输传参，二进制 Base64 不会被生成绑定误转换为数字数组。
+test('desktop facade forwards file bytes and clipboard operations', async () => {
+ const { Desktop } = await import('../hybrid/client.js');
+ const calls = [];
+ configureHybrid({ transport: { async call(...args) { calls.push(args); return '5Lit5paH'; } } });
+ try {
+  await Desktop.WriteFile('opaque-file-token', '5Lit5paH');
+  assert.deepEqual(calls.at(-1)[3].args, ['opaque-file-token', '5Lit5paH']);
+  assert.equal(await Desktop.ReadFile('opaque-file-token'), '5Lit5paH');
+  await Desktop.ClipboardText('write', '桌面剪贴板');
+  assert.deepEqual(calls.at(-1)[3].args, ['write', '桌面剪贴板']);
+ } finally { configureHybrid({ transport: null }); }
+});
 
 test('remote frontend calls the shell without depending on frontend origin', async () => {
  await UI.Alert('引号"\n', 'body', 2, 'bottomRight');

@@ -1,3 +1,4 @@
+import { isDesktopShell } from "./environment.js";
 const paths = {
   grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
   activity: '<path d="M3 12h4l3-7 4 14 3-7h4"/>',
@@ -14,6 +15,7 @@ document.querySelectorAll("[data-icon]").forEach((el) => {
   el.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${paths[el.dataset.icon]}</svg>`;
 });
 
+/** 根据当前页面锚点更新导航高亮和无障碍当前位置标记。 */
 function updateNavigation() {
   const current = location.hash === "#activity" ? "#activity" : "#workspace";
   document.querySelectorAll(".nav-item").forEach((link) => {
@@ -26,18 +28,26 @@ function updateNavigation() {
 window.addEventListener("hashchange", updateNavigation);
 updateNavigation();
 
-// Import the bindings only inside a desktop host; a plain browser can preview the UI.
-const isDesktop = Boolean(
-  window._wails?.environment ||
-    window.chrome?.webview ||
-    window.webkit?.messageHandlers?.external ||
-    window.external?.invoke ||
-    window.wails?.invoke,
-);
+// 只在桌面宿主中加载原生绑定，普通浏览器使用页面内弹框预览。
+const isDesktop = isDesktopShell();
 document.getElementById("environment").textContent = isDesktop
-  ? "桌面运行环境"
+  ? "正在连接宿主"
   : "浏览器预览模式";
+if (isDesktop) {
+  import("./host-client.js")
+    .then(async ({ Hybrid, Host }) => {
+      const info = await Hybrid.connect();
+      await Hybrid.call(() => Host.Ready(), { timeoutMs: 5000 });
+      document.getElementById("environment").textContent =
+        `宿主 ${info.version} 已连接`;
+    })
+    .catch((error) => {
+      document.getElementById("environment").textContent = "宿主连接失败";
+      log(`宿主连接失败：${error.message}`, true);
+    });
+}
 let servicePromise;
+/** 按需加载并缓存原生弹框绑定；加载失败后清除缓存，允许下一次操作重新尝试。 */
 const services = () =>
   (servicePromise ??= import(
     "../bindings/hybrid-infra/go/services/uiservice.js"
@@ -49,6 +59,7 @@ const list = document.getElementById("activity-list");
 const emptyState = list.innerHTML;
 const clearLog = document.getElementById("clear-log");
 let recordCount = 0;
+/** 将操作结果安全写入日志区域，更新累计次数，并只保留最近 30 条可见记录。 */
 function log(message, error = false) {
   if (!recordCount) list.replaceChildren();
   const row = document.createElement("div");
@@ -74,6 +85,7 @@ clearLog.addEventListener("click", () => {
 });
 
 const dialog = document.getElementById("preview-dialog");
+/** 在普通浏览器中模拟弹框；confirm 控制取消按钮，timeout 为自动关闭的毫秒数，关闭后返回选择结果。 */
 function preview(title, body, { confirm = false, timeout = 0 } = {}) {
   return new Promise((resolve) => {
     document.getElementById("preview-title").textContent = title;
@@ -89,6 +101,7 @@ function preview(title, body, { confirm = false, timeout = 0 } = {}) {
       bottomRight: "auto 20px 20px auto",
     }[place];
     let timer;
+    // 弹框关闭后清理自动关闭计时器，并结束本次预览的等待。
     const onClose = () => {
       clearTimeout(timer);
       resolve(dialog.returnValue);
@@ -104,13 +117,14 @@ document
 document
   .getElementById("preview-cancel")
   .addEventListener("click", () => dialog.close("0"));
-// Escape uses the native dialog cancellation behavior and resolves as cancellation.
+// 按 Escape 时使用浏览器 dialog 的取消行为，并把本次预览结果设为取消。
 dialog.addEventListener("cancel", () => {
   dialog.returnValue = "0";
 });
 
 let pending = false;
 const buttons = [...document.querySelectorAll(".card-button")];
+/** 为能力按钮注册操作：阻止重复触发，传入选择的位置，统一记录错误并恢复按钮状态。 */
 function action(id, label, run) {
   document.getElementById(id).addEventListener("click", async () => {
     if (pending) return;
@@ -181,8 +195,9 @@ action("openBaidu", "独立窗口", async (place) => {
     await (
       await services()
     ).OpenWindowByUrl({
-      url: "https://www.baidu.com",
-      title: "百度 · Hybrid",
+      name: "demo-window",
+      url: "/",
+      title: "Hybrid · 示例工作空间",
       isFullscreen: false,
       alwaysOnTop: false,
       hiddenOnTaskbar: false,
@@ -191,11 +206,11 @@ action("openBaidu", "独立窗口", async (place) => {
       width: 1000,
       height: 720,
     });
-    log("独立窗口已打开：百度");
+    log("示例窗口已打开，同一窗口 ID 会自动复用");
   } else {
-    const newWindow = window.open("https://www.baidu.com", "_blank");
+    const newWindow = window.open("/", "hybrid-demo-window");
     if (!newWindow) throw new Error("浏览器拦截了新窗口，请允许弹出窗口后重试");
     newWindow.opener = null;
-    log("百度已在新标签页打开（浏览器预览）");
+    log("示例页面已在新标签页打开（浏览器预览）");
   }
 });

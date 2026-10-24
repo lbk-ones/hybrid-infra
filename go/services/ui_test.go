@@ -9,8 +9,7 @@ import (
 	"testing"
 )
 
-// Execute the actual generated JavaScript, so quotes, template interpolation
-// and HTML payloads are checked at the language boundary rather than by regex.
+// TestDialogScriptTreatsContentAsData 实际执行生成的弹框脚本，验证引号、换行及恶意片段按数据传入，不会打断脚本或触发额外执行。
 func TestDialogScriptTreatsContentAsData(t *testing.T) {
 	if _, err := exec.LookPath("node"); err != nil {
 		t.Fatal("node is required for dialog boundary tests")
@@ -25,10 +24,12 @@ const expected = ` + string(want) + `;
 const elements = new Map();
 let ready;
 globalThis.document = {
+ documentElement: { dataset: {} },
  readyState: ` + map[bool]string{true: "'loading'", false: "'complete'"}[loading] + `,
  getElementById(id) { if (!elements.has(id)) elements.set(id, {}); return elements.get(id); },
  addEventListener(name, fn) { assert.equal(name, 'DOMContentLoaded'); ready = fn; }
 };
+globalThis.window = { dispatchEvent() {} };
 ` + dialogScript(content) + `
 if (ready) ready();
 assert.equal(elements.get('hybrid-ac-title').textContent, expected.title);
@@ -46,6 +47,7 @@ assert.equal(globalThis.injected, undefined);
 	}
 }
 
+// TestConfirmFirstValidResultWins 验证无效结果被忽略，首次有效确认结果在并发重复回包时也不会被覆盖。
 func TestConfirmFirstValidResultWins(t *testing.T) {
 	r := newConfirmResult()
 	for _, invalid := range []any{nil, 1, []string{"1"}, "yes", true} {
@@ -73,6 +75,7 @@ func TestConfirmFirstValidResultWins(t *testing.T) {
 	}
 }
 
+// TestConfirmCancellationPaths 分别验证调用取消、应用关闭和超时都会结束确认等待并返回取消结果。
 func TestConfirmCancellationPaths(t *testing.T) {
 	for _, source := range []string{"caller", "shutdown", "timeout"} {
 		t.Run(source, func(t *testing.T) {

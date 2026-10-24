@@ -10,6 +10,7 @@
   <body class="native-dialog">
     <div id="hybrid-show-container"></div>
     <script>
+      // 供可信浮窗内容的按钮调用，只关闭当前原生窗口。
       function closeWindow() {
         window.wails.Window.Close();
       }

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/shell.css" />
+    <title>正在加载 · Hybrid</title>
+  </head>
+  <body class="status-page">
+    <main class="status-card">
+      <span class="shell-brand" aria-hidden="true">h↗</span>
+      <p class="eyebrow">HYBRID DESKTOP</p>
+      <h1 id="status-title">正在连接工作空间</h1>
+      <p id="status-message" role="status" aria-live="polite">
+        页面加载中，请稍候。
+      </p>
+      <div id="loader" class="shell-loader" aria-hidden="true"></div>
+      <p id="status-address" class="address"></p>
+      <p id="status-code" class="error-code"></p>
+      <div class="status-actions">
+        <button id="retry" class="primary">重新加载</button
+        ><button id="home">返回内置首页</button>
+      </div>
+    </main>
+    <script type="module" src="/src/shell-status.js"></script>
+  </body>
+</html>
