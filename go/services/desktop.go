@@ -9,6 +9,16 @@ import (
 // DesktopService 是业务前端的桌面能力入口；每个方法独立校验能力，资源归属由宿主管理层继续检查。
 type DesktopService struct{ desktop *host.Desktop }
 
+// CaptureDisplays 返回物理像素与逻辑坐标显示器信息，供截图坐标输入和手动框选选择显示器。
+func (s *DesktopService) CaptureDisplays(ctx context.Context) ([]host.CaptureDisplay, error) {
+	return s.desktop.CaptureDisplays(ctx)
+}
+
+// Screenshot 按物理坐标截图或等待用户框选；输出支持 PNG Base64、系统剪贴板或两者，剪贴板另需 clipboard 权限。
+func (s *DesktopService) Screenshot(ctx context.Context, req host.ScreenshotReq) (host.ScreenshotResult, error) {
+	return s.desktop.Screenshot(ctx, req)
+}
+
 // ListDirectory 读取已选目录的直接条目；不会递归扫描整块磁盘。
 func (s *DesktopService) ListDirectory(ctx context.Context, token string) ([]host.DirectoryEntry, error) {
 	if err := host.Require(ctx, "files"); err != nil {

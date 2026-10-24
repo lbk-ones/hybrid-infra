@@ -135,6 +135,125 @@ export class CacheValue {
 }
 
 /**
+ * CaptureDisplay 同时返回物理像素和 Wails 逻辑坐标，调用者无需猜测高 DPI 缩放比例。
+ */
+export class CaptureDisplay {
+    /**
+     * Creates a new CaptureDisplay instance.
+     * @param {Partial<CaptureDisplay>} [$$source = {}] - The source object to create the CaptureDisplay.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("primary" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["primary"] = false;
+        }
+        if (!("physical" in $$source)) {
+            /**
+             * @member
+             * @type {CaptureRegion}
+             */
+            this["physical"] = (new CaptureRegion());
+        }
+        if (!("logical" in $$source)) {
+            /**
+             * @member
+             * @type {CaptureRegion}
+             */
+            this["logical"] = (new CaptureRegion());
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CaptureDisplay instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {CaptureDisplay}
+     */
+    static createFrom($$source = {}) {
+        const $$createField3_0 = $$createType0;
+        const $$createField4_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("physical" in $$parsedSource) {
+            $$parsedSource["physical"] = $$createField3_0($$parsedSource["physical"]);
+        }
+        if ("logical" in $$parsedSource) {
+            $$parsedSource["logical"] = $$createField4_0($$parsedSource["logical"]);
+        }
+        return new CaptureDisplay(/** @type {Partial<CaptureDisplay>} */($$parsedSource));
+    }
+}
+
+/**
+ * CaptureRegion 使用虚拟桌面的物理像素坐标；负坐标用于主屏左侧或上侧的显示器。
+ */
+export class CaptureRegion {
+    /**
+     * Creates a new CaptureRegion instance.
+     * @param {Partial<CaptureRegion>} [$$source = {}] - The source object to create the CaptureRegion.
+     */
+    constructor($$source = {}) {
+        if (!("x" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["x"] = 0;
+        }
+        if (!("y" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["y"] = 0;
+        }
+        if (!("width" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["width"] = 0;
+        }
+        if (!("height" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["height"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CaptureRegion instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {CaptureRegion}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new CaptureRegion(/** @type {Partial<CaptureRegion>} */($$parsedSource));
+    }
+}
+
+/**
  * CommandInfo 是命令任务状态，不包含命令参数或秘密环境变量；exitCode 在任务结束后有效。
  */
 export class CommandInfo {
@@ -188,7 +307,7 @@ export class CommandInfo {
      * @returns {CommandInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField4_0 = $$createType1;
+        const $$createField4_0 = $$createType2;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("error" in $$parsedSource) {
             $$parsedSource["error"] = $$createField4_0($$parsedSource["error"]);
@@ -258,7 +377,7 @@ export class CommandOptions {
      * @returns {CommandOptions}
      */
     static createFrom($$source = {}) {
-        const $$createField2_0 = $$createType2;
+        const $$createField2_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("args" in $$parsedSource) {
             $$parsedSource["args"] = $$createField2_0($$parsedSource["args"]);
@@ -321,7 +440,7 @@ export class CommandOutput {
      * @returns {CommandOutput}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType3;
+        const $$createField0_0 = $$createType4;
         const $$createField1_0 = $Create.ByteSlice;
         const $$createField2_0 = $Create.ByteSlice;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
@@ -458,7 +577,7 @@ export class DownloadInfo {
      * @returns {DownloadInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField6_0 = $$createType1;
+        const $$createField6_0 = $$createType2;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("error" in $$parsedSource) {
             $$parsedSource["error"] = $$createField6_0($$parsedSource["error"]);
@@ -669,6 +788,135 @@ export class Preferences {
 }
 
 /**
+ * ScreenshotReq 支持 region 坐标截图或 select 手动框选；output 为 base64、clipboard 或 both，默认 base64。
+ */
+export class ScreenshotReq {
+    /**
+     * Creates a new ScreenshotReq instance.
+     * @param {Partial<ScreenshotReq>} [$$source = {}] - The source object to create the ScreenshotReq.
+     */
+    constructor($$source = {}) {
+        if (!("mode" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["mode"] = "";
+        }
+        if (!("x" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["x"] = 0;
+        }
+        if (!("y" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["y"] = 0;
+        }
+        if (!("width" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["width"] = 0;
+        }
+        if (!("height" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["height"] = 0;
+        }
+        if (!("displayId" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["displayId"] = "";
+        }
+        if (!("output" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["output"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ScreenshotReq instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ScreenshotReq}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ScreenshotReq(/** @type {Partial<ScreenshotReq>} */($$parsedSource));
+    }
+}
+
+/**
+ * ScreenshotResult 只在选择对应输出时携带 Base64；PNG 不落磁盘，clipboard 表示已成功写入系统剪贴板。
+ */
+export class ScreenshotResult {
+    /**
+     * Creates a new ScreenshotResult instance.
+     * @param {Partial<ScreenshotResult>} [$$source = {}] - The source object to create the ScreenshotResult.
+     */
+    constructor($$source = {}) {
+        if (!("region" in $$source)) {
+            /**
+             * @member
+             * @type {CaptureRegion}
+             */
+            this["region"] = (new CaptureRegion());
+        }
+        if (!("mime" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["mime"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["base64"] = undefined;
+        }
+        if (!("clipboard" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["clipboard"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ScreenshotResult instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ScreenshotResult}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("region" in $$parsedSource) {
+            $$parsedSource["region"] = $$createField0_0($$parsedSource["region"]);
+        }
+        return new ScreenshotResult(/** @type {Partial<ScreenshotResult>} */($$parsedSource));
+    }
+}
+
+/**
  * SettingsSnapshot 区分正在运行的启动配置、磁盘待生效配置与立即生效的界面偏好。
  */
 export class SettingsSnapshot {
@@ -715,9 +963,9 @@ export class SettingsSnapshot {
      * @returns {SettingsSnapshot}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType5;
-        const $$createField1_0 = $$createType5;
-        const $$createField2_0 = $$createType6;
+        const $$createField0_0 = $$createType6;
+        const $$createField1_0 = $$createType6;
+        const $$createField2_0 = $$createType7;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("active" in $$parsedSource) {
             $$parsedSource["active"] = $$createField0_0($$parsedSource["active"]);
@@ -859,8 +1107,8 @@ export class WindowInfo {
      * @returns {WindowInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField5_0 = $$createType7;
-        const $$createField7_0 = $$createType1;
+        const $$createField5_0 = $$createType8;
+        const $$createField7_0 = $$createType2;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("bounds" in $$parsedSource) {
             $$parsedSource["bounds"] = $$createField5_0($$parsedSource["bounds"]);
@@ -873,11 +1121,12 @@ export class WindowInfo {
 }
 
 // Private type creation functions
-const $$createType0 = Error.createFrom;
-const $$createType1 = $Create.Nullable($$createType0);
-const $$createType2 = $Create.Array($Create.Any);
-const $$createType3 = CommandInfo.createFrom;
-const $$createType4 = setting$0.PkgInfo.createFrom;
-const $$createType5 = $Create.Nullable($$createType4);
-const $$createType6 = Preferences.createFrom;
-const $$createType7 = application$0.Rect.createFrom;
+const $$createType0 = CaptureRegion.createFrom;
+const $$createType1 = Error.createFrom;
+const $$createType2 = $Create.Nullable($$createType1);
+const $$createType3 = $Create.Array($Create.Any);
+const $$createType4 = CommandInfo.createFrom;
+const $$createType5 = setting$0.PkgInfo.createFrom;
+const $$createType6 = $Create.Nullable($$createType5);
+const $$createType7 = Preferences.createFrom;
+const $$createType8 = application$0.Rect.createFrom;

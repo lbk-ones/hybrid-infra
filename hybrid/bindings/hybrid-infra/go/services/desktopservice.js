@@ -28,6 +28,16 @@ export function CancelDownload(id) {
 }
 
 /**
+ * CaptureDisplays 返回物理像素与逻辑坐标显示器信息，供截图坐标输入和手动框选选择显示器。
+ * @returns {$CancellablePromise<host$0.CaptureDisplay[]>}
+ */
+export function CaptureDisplays() {
+    return $Call.ByID(489414778).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
  * ClipboardImage 读取或写入 PNG 剪贴板内容，write 为 false 时 data 可为空。
  * @param {string} data
  * @param {boolean} write
@@ -75,7 +85,7 @@ export function Credential(key, value, operation) {
  */
 export function GetSettings() {
     return $Call.ByID(4282504702).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType0($result);
+        return $$createType2($result);
     }));
 }
 
@@ -86,7 +96,7 @@ export function GetSettings() {
  */
 export function ListDirectory(token) {
     return $Call.ByID(3977646896, token).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType2($result);
+        return $$createType4($result);
     }));
 }
 
@@ -96,7 +106,7 @@ export function ListDirectory(token) {
  */
 export function ListDownloads() {
     return $Call.ByID(587719958).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType4($result);
+        return $$createType6($result);
     }));
 }
 
@@ -119,7 +129,7 @@ export function Notify(title, body, route) {
  */
 export function OpenChild(token, name) {
     return $Call.ByID(2931555301, token, name).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType5($result);
+        return $$createType7($result);
     }));
 }
 
@@ -168,7 +178,7 @@ export function RemoveDownload(id) {
  */
 export function ResetPreferences() {
     return $Call.ByID(1455394158).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType6($result);
+        return $$createType8($result);
     }));
 }
 
@@ -179,7 +189,7 @@ export function ResetPreferences() {
  */
 export function RetryDownload(id) {
     return $Call.ByID(795553313, id).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType3($result);
+        return $$createType5($result);
     }));
 }
 
@@ -199,7 +209,7 @@ export function RevealFile(token) {
  */
 export function SavePreferences(p) {
     return $Call.ByID(4185504182, p).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType6($result);
+        return $$createType8($result);
     }));
 }
 
@@ -210,7 +220,18 @@ export function SavePreferences(p) {
  */
 export function SaveSettings(config) {
     return $Call.ByID(1216636953, config).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType0($result);
+        return $$createType2($result);
+    }));
+}
+
+/**
+ * Screenshot 按物理坐标截图或等待用户框选；输出支持 PNG Base64、系统剪贴板或两者，剪贴板另需 clipboard 权限。
+ * @param {host$0.ScreenshotReq} req
+ * @returns {$CancellablePromise<host$0.ScreenshotResult>}
+ */
+export function Screenshot(req) {
+    return $Call.ByID(464176421, req).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType9($result);
     }));
 }
 
@@ -222,7 +243,7 @@ export function SaveSettings(config) {
  */
 export function SelectFile(mode, name) {
     return $Call.ByID(613156639, mode, name).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType5($result);
+        return $$createType7($result);
     }));
 }
 
@@ -246,7 +267,7 @@ export function SetShortcut(key, route, global, enable) {
  */
 export function StartDownload(url, token) {
     return $Call.ByID(2035717607, url, token).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType3($result);
+        return $$createType5($result);
     }));
 }
 
@@ -261,10 +282,13 @@ export function WriteFile(token, data) {
 }
 
 // Private type creation functions
-const $$createType0 = host$0.SettingsSnapshot.createFrom;
-const $$createType1 = host$0.DirectoryEntry.createFrom;
-const $$createType2 = $Create.Array($$createType1);
-const $$createType3 = host$0.DownloadInfo.createFrom;
+const $$createType0 = host$0.CaptureDisplay.createFrom;
+const $$createType1 = $Create.Array($$createType0);
+const $$createType2 = host$0.SettingsSnapshot.createFrom;
+const $$createType3 = host$0.DirectoryEntry.createFrom;
 const $$createType4 = $Create.Array($$createType3);
-const $$createType5 = host$0.FileGrant.createFrom;
-const $$createType6 = host$0.Preferences.createFrom;
+const $$createType5 = host$0.DownloadInfo.createFrom;
+const $$createType6 = $Create.Array($$createType5);
+const $$createType7 = host$0.FileGrant.createFrom;
+const $$createType8 = host$0.Preferences.createFrom;
+const $$createType9 = host$0.ScreenshotResult.createFrom;

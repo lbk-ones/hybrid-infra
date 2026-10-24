@@ -115,6 +115,9 @@ type Desktop struct {
 	notifier           *notifications.NotificationService
 	notificationRoutes map[string]string
 	notificationOrder  []string
+	captureMu          sync.Mutex
+	selectionMu        sync.Mutex
+	selection          *captureSelection
 }
 
 // NewDesktop 创建桌面能力管理器，读取界面偏好，并在应用退出时取消下载；不默认启用任何来源权限。
@@ -129,6 +132,8 @@ func NewDesktop(app *application.App, c *Controller, dir string) *Desktop {
 	if app != nil {
 		app.OnShutdown(d.shutdown)
 		c.OnResourceWindowClosed(d.windowClosed)
+		c.OnResourceWindowClosed(d.captureWindowClosed)
+		c.OnNativeMessageHandler(d.captureMessage)
 	}
 	return d
 }
@@ -390,6 +395,7 @@ func (d *Desktop) SavePreferences(p Preferences) (Preferences, error) {
 
 // shutdown 取消全部后台下载；应用级全局快捷键由 Wails 在退出时统一释放。
 func (d *Desktop) shutdown() {
+	d.cancelSelection()
 	d.mu.Lock()
 	for _, e := range d.downloads {
 		if e.cancel != nil {

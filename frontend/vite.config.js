@@ -14,6 +14,7 @@ export default defineConfig({
         desktop: fileURLToPath(new URL("./shell/desktop.html", import.meta.url)),
         bridge: fileURLToPath(new URL("./shell/bridge.html", import.meta.url)),
         ui: fileURLToPath(new URL("./shell/ui.html", import.meta.url)),
+        capture: fileURLToPath(new URL("./shell/capture.html", import.meta.url)),
       },
     },
   },

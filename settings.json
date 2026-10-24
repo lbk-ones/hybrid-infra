@@ -1,4 +1,22 @@
 {
+  "title": "Hybrid App",
   "url": "/",
-  "logLevel": -4
+  "debug": true,
+  "frameless": false,
+  "width": 1280,
+  "height": 800,
+  "minWidth": 800,
+  "minHeight": 600,
+  "singleInstance": true,
+  "trayEnabled": true,
+  "closeBehavior": "exit",
+  "rememberWindows": true,
+  "loadTimeoutSeconds": 30,
+  "externalLinks": "browser",
+  "allowedOrigins": [],
+  "navigationOrigins": [],
+  "permissions": {},
+  "desktopCapabilities": ["files", "downloads", "clipboard", "notifications", "shortcuts", "settings", "credentials", "protocol", "cache"],
+  "shellPrograms": ["go", "git"],
+  "logLevel": 0
 }

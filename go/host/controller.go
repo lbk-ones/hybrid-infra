@@ -63,21 +63,22 @@ type Task struct {
 // Controller 统一管理桌面宿主的窗口、页面加载、任务退出保护和状态保存。
 // 前端通过 go/services 的权限入口间接使用它，不直接绑定本类型的全部方法。
 type Controller struct {
-	app           *application.App
-	config        *setting.PkgInfo
-	Policy        *Policy
-	store         *stateStore
-	mu            sync.RWMutex // 保护窗口登记、加载状态和任务列表，不应在持锁时调用原生窗口接口。
-	openMu        sync.Mutex   // 串行处理窗口创建与复用，防止相同 ID 被并发创建两次。
-	windows       map[string]*entry
-	tasks         map[string]Task
-	sequence      atomic.Uint64
-	quitting      atomic.Bool
-	promptOpen    atomic.Bool
-	tray          *application.SystemTray
-	trayStatus    *application.MenuItem
-	trayTasks     int
-	closeHandlers []func(string)
+	app            *application.App
+	config         *setting.PkgInfo
+	Policy         *Policy
+	store          *stateStore
+	mu             sync.RWMutex // 保护窗口登记、加载状态和任务列表，不应在持锁时调用原生窗口接口。
+	openMu         sync.Mutex   // 串行处理窗口创建与复用，防止相同 ID 被并发创建两次。
+	windows        map[string]*entry
+	tasks          map[string]Task
+	sequence       atomic.Uint64
+	quitting       atomic.Bool
+	promptOpen     atomic.Bool
+	tray           *application.SystemTray
+	trayStatus     *application.MenuItem
+	trayTasks      int
+	closeHandlers  []func(string)
+	nativeHandlers []func(application.Window, string, *application.OriginInfo) bool
 }
 
 // New 创建宿主管理器，读取已有窗口状态，并初始化窗口、任务和权限登记表。此时尚未绑定 Wails 应用。
@@ -114,6 +115,11 @@ func (c *Controller) Config() *setting.PkgInfo { return c.config }
 // OnResourceWindowClosed 在应用启动阶段登记资源清理函数；窗口从管理表移除、释放窗口锁后调用，避免资源锁与窗口锁相互等待。
 func (c *Controller) OnResourceWindowClosed(handler func(string)) {
 	c.closeHandlers = append(c.closeHandlers, handler)
+}
+
+// OnNativeMessageHandler 在启动阶段登记内部原生页面消息处理器；统一校验顶层来源后才调用，处理器仍须验证窗口和随机会话凭证。
+func (c *Controller) OnNativeMessageHandler(handler func(application.Window, string, *application.OriginInfo) bool) {
+	c.nativeHandlers = append(c.nativeHandlers, handler)
 }
 
 // EnvironmentInfo 区分真正由原生窗口发起的调用与普通浏览器连接；不能仅凭页面地址或 JavaScript 全局变量确认环境。
@@ -815,6 +821,11 @@ func (c *Controller) NativeMessage(w application.Window, message string, source 
 	sourceOrigin, topOrigin := Origin(source.Origin), Origin(source.TopOrigin)
 	if sourceOrigin == "" || sourceOrigin != topOrigin {
 		return
+	}
+	for _, handler := range c.nativeHandlers {
+		if handler(w, message, source) {
+			return
+		}
 	}
 	var data struct {
 		Type string `json:"type"`

@@ -58,16 +58,16 @@ func encodeDIB(data []byte, width, height, bits int) ([]byte, error) {
 // pngDIB 为只识别标准位图格式的 Windows 程序生成自底向上的 32 位 DIB，同时保留 PNG 供支持透明度的程序使用。
 func pngDIB(data []byte) ([]byte, error) {
 	config, err := png.DecodeConfig(bytes.NewReader(data))
-	if err != nil || config.Width < 1 || config.Height < 1 || int64(config.Width)*int64(config.Height) > 4*1024*1024 {
-		return nil, Fail("E_TOO_LARGE", "PNG 无效或像素超过 400 万")
+	if err != nil || config.Width < 1 || config.Height < 1 || int64(config.Width)*int64(config.Height) > maxCapturePixels {
+		return nil, Fail("E_TOO_LARGE", "PNG 无效或像素超过截图限制")
 	}
 	img, err := png.Decode(bytes.NewReader(data))
 	if err != nil {
 		return nil, Fail("E_INVALID_ARGUMENT", "不是有效的 PNG 图像")
 	}
 	width, height := img.Bounds().Dx(), img.Bounds().Dy()
-	if width*height > 4*1024*1024 {
-		return nil, Fail("E_TOO_LARGE", "图像像素超过 400 万")
+	if int64(width)*int64(height) > maxCapturePixels {
+		return nil, Fail("E_TOO_LARGE", "图像像素超过截图限制")
 	}
 	result := make([]byte, 40+width*height*4)
 	binary.LittleEndian.PutUint32(result, 40)

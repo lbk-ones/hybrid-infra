@@ -149,7 +149,7 @@ func (p *PkgInfo) validate() error {
 	for _, capabilities := range permissionSets {
 		for _, capability := range capabilities {
 			switch capability {
-			case "host", "windows", "ui", "ui.html", "store", "log", "lifecycle", "events", "files", "downloads", "clipboard", "notifications", "shortcuts", "settings", "credentials", "protocol", "shell", "shell.script", "cache", "cache.global", "events.global":
+			case "host", "windows", "ui", "ui.html", "store", "log", "lifecycle", "events", "files", "downloads", "clipboard", "notifications", "shortcuts", "settings", "credentials", "protocol", "shell", "shell.script", "cache", "cache.global", "events.global", "screenshot":
 			default:
 				return fmt.Errorf("unknown capability %q", capability)
 			}

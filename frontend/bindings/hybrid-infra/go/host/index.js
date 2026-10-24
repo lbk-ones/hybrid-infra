@@ -5,6 +5,8 @@
 export {
     BusMessage,
     CacheValue,
+    CaptureDisplay,
+    CaptureRegion,
     CommandInfo,
     CommandOptions,
     CommandOutput,
@@ -14,6 +16,8 @@ export {
     Error,
     FileGrant,
     Preferences,
+    ScreenshotReq,
+    ScreenshotResult,
     SettingsSnapshot,
     Task,
     WindowInfo

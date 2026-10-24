@@ -45,6 +45,7 @@ func Register(app *application.App, controller *host.Controller) error {
 	register(application.NewService(&EventService{bus: bus}), "events", nil)
 	register(application.NewService(&ShellService{commands: commands}), "shell", nil)
 	register(application.NewService(&DesktopService{desktop: desktop}), "files", map[string]string{
+		"CaptureDisplays": "screenshot", "Screenshot": "screenshot",
 		"StartDownload": "downloads", "ListDownloads": "downloads", "CancelDownload": "downloads", "RetryDownload": "downloads", "OpenDownload": "downloads", "RemoveDownload": "downloads",
 		"ClipboardText": "clipboard", "ClipboardImage": "clipboard", "Notify": "notifications", "SetShortcut": "shortcuts", "ConfigureProtocol": "protocol", "Credential": "credentials",
 		"GetSettings": "settings", "SaveSettings": "settings", "SavePreferences": "settings", "ResetPreferences": "settings",

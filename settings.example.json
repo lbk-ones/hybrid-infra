@@ -16,7 +16,7 @@
   "allowedOrigins": [],
   "navigationOrigins": [],
   "permissions": {},
-  "desktopCapabilities": ["files", "downloads", "clipboard", "notifications", "shortcuts", "settings", "credentials", "protocol", "cache"],
+  "desktopCapabilities": ["files", "downloads", "clipboard", "notifications", "shortcuts", "settings", "credentials", "protocol", "cache", "screenshot"],
   "shellPrograms": ["go", "git"],
   "logLevel": 0
 }
