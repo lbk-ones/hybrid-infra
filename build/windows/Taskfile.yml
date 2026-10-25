@@ -47,7 +47,8 @@ tasks:
       - cmd: rm -f *.syso
         platforms: [linux, darwin]
     vars:
-      BUILD_FLAGS: '{{if eq .DEV "true"}}-buildvcs=false -gcflags=all="-l"{{else}}-tags production -trimpath -buildvcs=false -ldflags="-w -s -H windowsgui -X hybrid-infra/go/host.Version={{.VERSION}}"{{end}}'
+      # 正式包默认移除开发者工具；只有显式 DEVTOOLS=true 才编入控制台，配置 debug 仍控制项目的 F12 快捷键。
+      BUILD_FLAGS: '{{if eq .DEV "true"}}-buildvcs=false -gcflags=all="-l"{{else}}-tags production{{if eq .DEVTOOLS "true"}},devtools{{end}} -trimpath -buildvcs=false -ldflags="-w -s -H windowsgui -X hybrid-infra/go/host.Version={{.VERSION}}"{{end}}'
     env:
       GOOS: windows
       CGO_ENABLED: '{{.CGO_ENABLED | default "0"}}'

@@ -12,6 +12,8 @@ import * as UIBindings from "../bindings/hybrid-infra/go/services/uiservice.js";
 import { createUI } from "./ui-client.js";
 import { createClient } from "./sdk-core.js";
 export { Host, Windows, Desktop, Cache, Maintenance };
+export * as Store from "../bindings/github.com/wailsapp/wails/v3/pkg/services/kvstore/kvstoreservice.js";
+export * as Log from "../bindings/github.com/wailsapp/wails/v3/pkg/services/log/logservice.js";
 export { HybridError, normalizeError } from "./sdk-core.js";
 export const Hybrid = createClient(Host);
 export const Events = createEvents(EventService, Hybrid.call);

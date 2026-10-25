@@ -2,6 +2,28 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { call, createClient, HybridError, normalizeError } from "../frontend/src/sdk-core.js";
 
+// 文档入口只能调用固定宿主方法，既不接受任意 URL，也沿用统一错误处理。
+test("documentation helper calls the fixed host entry point", async () => {
+  let calls = 0;
+  const client = createClient({
+    async OpenDeveloperDocs(...args) {
+      assert.deepEqual(args, []);
+      calls++;
+      return { id: "hybrid-infra-docs" };
+    },
+  });
+  assert.equal((await client.openDocs()).id, "hybrid-infra-docs");
+  assert.equal(calls, 1);
+  await assert.rejects(
+    createClient({
+      async OpenDeveloperDocs() {
+        throw { code: "E_PERMISSION_DENIED", message: "denied" };
+      },
+    }).openDocs(),
+    { code: "E_PERMISSION_DENIED" },
+  );
+});
+
 test("handshake checks protocol and capabilities, retries after failure", async () => {
   let attempts = 0;
   const client = createClient({

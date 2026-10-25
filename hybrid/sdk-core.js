@@ -130,5 +130,9 @@ export function createClient(Host) {
   async function detectEnvironment({ timeoutMs = 1500 } = {}) {
     return probeEnvironment(() => call(() => Host.GetEnvironment(), { timeoutMs }));
   }
-  return { connect, call, withTask, isDesktopShell, detectEnvironment };
+  /** 打开或聚焦宿主的内置开发文档窗口；固定入口只需要 host 权限，不接受任意 URL。 */
+  async function openDocs(options) {
+    return call(() => Host.OpenDeveloperDocs(), options);
+  }
+  return { connect, call, withTask, isDesktopShell, detectEnvironment, openDocs };
 }

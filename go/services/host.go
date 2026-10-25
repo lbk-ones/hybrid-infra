@@ -9,6 +9,18 @@ import (
 // HostService 是前端查询宿主状态、登记任务和请求退出的服务入口，先检查权限再调用管理器。
 type HostService struct{ controller *host.Controller }
 
+// OpenDeveloperDocs 检查 host 能力和原生窗口归属后打开固定开发文档与示例窗口，不接受目标 URL 或任意窗口选项。
+func (s *HostService) OpenDeveloperDocs(ctx context.Context) (host.WindowInfo, error) {
+	if err := host.Require(ctx, "host"); err != nil {
+		return host.WindowInfo{}, err
+	}
+	_, window := host.CallerIdentity(ctx)
+	if window == "" {
+		return host.WindowInfo{}, host.Fail("E_PERMISSION_DENIED", "请从原生桌面窗口打开开发文档")
+	}
+	return s.controller.OpenDeveloperDocs()
+}
+
 // GetStartupState 检查 host 能力后读取启动状态，管理器还会验证调用者确为内置启动屏。
 func (s *HostService) GetStartupState(ctx context.Context) (host.StartupState, error) {
 	if err := host.Require(ctx, "host"); err != nil {

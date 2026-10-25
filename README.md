@@ -80,6 +80,7 @@ Go 弹框边界测试会调用 Node，因此运行 Go 测试也需要 Node.js。
 - [第三阶段诊断、备份迁移与签名更新](docs/phase3-maintenance.md)
 - [品牌图标、托盘与任务栏图标动态替换](docs/application-icons.md)
 - [启动屏、加载动画与配置开关](docs/startup-splash.md)
+- [内置开发文档、托盘入口与 F12 命令](docs/developer-guide.md)
 - [Shell、全局缓存、事件回调与环境检测](docs/business-bridge.md)
 - [通知堆叠、拖拽开关与区域截图](docs/ui-notifications-capture.md)
 - [本次升级、兼容变化与验证记录](docs/upgrade-2026-10-20.md)

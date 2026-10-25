@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>开发文档 · Hybrid</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs.css" />
+  </head>
+  <body>
+    <aside class="docs-sidebar" id="docs-sidebar">
+      <a class="docs-brand" href="#overview"
+        ><img src="/app-icon.svg" alt="" width="38" height="38" /><span
+          >hybrid<span class="docs-brand-label">DEVELOPER DOCS</span></span
+        ><span class="docs-brand-version">v1</span></a
+      >
+      <label class="docs-search" for="docs-query"
+        ><span aria-hidden="true">⌕</span
+        ><input
+          type="search"
+          id="docs-query"
+          placeholder="搜索功能、API、权限…"
+          autocomplete="off"
+        /><kbd>Ctrl K</kbd></label
+      >
+      <nav id="docs-nav" aria-label="开发文档目录"></nav>
+      <footer class="docs-sidebar-footer">
+        <span class="connection-dot"></span><span id="docs-environment">离线文档 · 无需联网</span
+        ><a href="/">工作台 ↗</a>
+      </footer>
+    </aside>
+    <button class="docs-backdrop" id="docs-backdrop" aria-label="关闭文档目录" hidden></button>
+    <div class="docs-workspace">
+      <header class="docs-topbar">
+        <div class="docs-topbar-left">
+          <button
+            id="docs-menu"
+            aria-expanded="false"
+            aria-controls="docs-sidebar"
+            aria-label="展开文档目录"
+          >
+            ☰</button
+          ><span class="docs-breadcrumb" id="docs-breadcrumb">开发文档 / 概览</span>
+        </div>
+        <div class="docs-topbar-actions">
+          <button id="docs-stop-all" hidden>停止全部示例</button>
+          <button id="docs-detach" disabled>独立窗口</button>
+          <button id="docs-link">复制当前链接</button><a href="/">工作台 ↗</a>
+        </div>
+      </header>
+      <main id="docs-main" tabindex="-1"><div id="docs-content"></div></main>
+    </div>
+    <div id="docs-toast" role="status" aria-live="polite" hidden></div>
+    <template id="docs-overview">
+      <section class="docs-hero">
+        <div class="docs-eyebrow"><span></span>HYBRID / CAPABILITY REFERENCE</div>
+        <h1 tabindex="-1">把网页能力，<br /><span>连接到桌面。</span></h1>
+        <p>
+          从一个通知到跨窗口事件，从本地文件到应用更新。<br
+            class="docs-desktop-break"
+          />在这里找到可用能力、调用方式和需要的权限。
+        </p>
+        <div class="docs-hero-actions">
+          <a class="docs-primary" href="#quickstart">开始接入 <span>↗</span></a
+          ><a class="docs-secondary" href="#permissions">了解授权模型 →</a>
+        </div>
+        <div class="docs-stats" id="docs-stats"></div>
+      </section>
+      <section class="docs-console-card">
+        <div>
+          <span class="docs-eyebrow">ALWAYS WITHIN REACH</span>
+          <h2>开发文档，随时打开</h2>
+          <p>托盘 → 开发文档，或在 F12 控制台输入：</p>
+        </div>
+        <div class="docs-console-snippet">
+          <code>hybridDocs()</code><button data-copy="hybridDocs()">复制命令</button>
+        </div>
+      </section>
+      <section class="docs-section">
+        <div class="docs-section-heading">
+          <div>
+            <p class="docs-eyebrow">EXPLORE THE TOOLKIT</p>
+            <h2>按能力查找</h2>
+          </div>
+          <span>六个大类，一套 SDK</span>
+        </div>
+        <div id="docs-category-grid" class="docs-category-grid"></div>
+      </section>
+      <section class="docs-section docs-permissions" aria-labelledby="docs-permissions-title">
+        <div class="docs-section-heading">
+          <div>
+            <p class="docs-eyebrow">PERMISSION CATALOG</p>
+            <h2 id="docs-permissions-title">全部权限 <small id="docs-permission-count"></small></h2>
+          </div>
+        </div>
+        <p class="docs-permission-intro">
+          每项权限的用途列在下方。复制全部权限可得到 JSON 数组，填入 permissions
+          中对应来源的列表；内置页面可直接复制 desktopCapabilities 配置片段。
+        </p>
+        <div class="docs-permission-actions">
+          <button id="docs-copy-all-permissions" class="docs-run-button" type="button">
+            一键复制全部权限
+          </button>
+          <button id="docs-copy-local-permissions" class="docs-example-reset" type="button">
+            复制内置页面配置
+          </button>
+          <a href="#permissions">查看授权配置说明 →</a>
+        </div>
+        <p class="docs-permission-intro">
+          “默认基础”仅适用于未被显式 permissions
+          覆盖的可信来源；显式配置会覆盖默认列表。复制不会自动启用权限，修改配置后重启生效。Shell
+          程序仍需配置 shellPrograms 白名单。
+        </p>
+        <ul id="docs-permission-list" class="docs-permission-list"></ul>
+        <details class="docs-permission-preview">
+          <summary>查看可复制的权限 JSON</summary>
+          <div id="docs-permission-code"></div>
+        </details>
+      </section>
+      <section class="docs-section docs-quickstart">
+        <div>
+          <p class="docs-eyebrow">YOUR FIRST CALL</p>
+          <h2>只需一次导入。</h2>
+          <p>
+            把完整的 hybrid/ 复制到前端静态目录，再从业务页面导入
+            client.js。进入功能详情后，可以填写参数并点击「运行示例」实际调用。
+          </p>
+          <a href="#quickstart">查看完整接入步骤 →</a>
+        </div>
+        <div id="docs-first-code"></div>
+      </section>
+    </template>
+    <script type="module" src="/src/shell-docs.js"></script>
+  </body>
+</html>

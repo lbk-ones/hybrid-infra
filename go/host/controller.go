@@ -414,7 +414,8 @@ func (c *Controller) OpenFor(ctx context.Context, options utils.NewWindowOptions
 }
 
 // open 统一执行地址检查、外链分流、窗口 ID 复用、数量限制和状态恢复；新建窗口先显示本地加载页。
-func (c *Controller) open(options utils.NewWindowOptions, ceiling []string) (WindowInfo, error) {
+// reservedNames 只允许可信 Go 代码为固定内部窗口放行保留名称，网页参数不能设置此白名单。
+func (c *Controller) open(options utils.NewWindowOptions, ceiling []string, reservedNames ...string) (WindowInfo, error) {
 	inside, err := c.Policy.Navigation(options.Url)
 	if err != nil {
 		return WindowInfo{}, err
@@ -433,7 +434,7 @@ func (c *Controller) open(options utils.NewWindowOptions, ceiling []string) (Win
 	if options.Name == "" {
 		options.Name = fmt.Sprintf("window-%d", c.sequence.Add(1))
 	}
-	if !validID.MatchString(options.Name) || options.Name == "main-window" || strings.HasPrefix(options.Name, "hybrid-infra-") {
+	if !validID.MatchString(options.Name) || options.Name == "main-window" || strings.HasPrefix(options.Name, "hybrid-infra-") && !slices.Contains(reservedNames, options.Name) {
 		return WindowInfo{}, Fail("E_INVALID_ARGUMENT", "窗口 ID 无效或为宿主保留名称")
 	}
 	c.mu.RLock()
@@ -807,6 +808,12 @@ func (c *Controller) InstallTray(icon []byte) {
 	tray.SetTooltip(c.config.Title)
 	tray.OnClick(c.WakeMain)
 	menu := application.NewMenu()
+	menu.Add("开发文档").OnClick(func(*application.Context) {
+		if _, err := c.OpenDeveloperDocs(); err != nil {
+			c.app.Logger.Warn("open developer docs", "code", "E_DOCS_OPEN")
+		}
+	})
+	menu.AddSeparator()
 	menu.Add("显示主窗口").OnClick(func(*application.Context) { c.WakeMain() })
 	menu.Add("宿主管理").OnClick(func(*application.Context) {
 		_, err := c.Open(utils.NewWindowOptions{Name: "host-console", Title: "宿主管理", Url: "/shell/manage.html", Width: 1100, Height: 800})
@@ -875,6 +882,16 @@ func (c *Controller) NativeMessage(w application.Window, message string, source 
 	}
 	e := c.getEntry(w.Name())
 	if e == nil {
+		return
+	}
+	if data.Type == "open-docs" {
+		if slices.Contains(c.Policy.WindowGrants(fmt.Sprint(w.ID()), sourceOrigin), "host") {
+			go func() {
+				if _, err := c.OpenDeveloperDocs(); err != nil {
+					c.app.Logger.Warn("open developer docs", "code", "E_DOCS_OPEN")
+				}
+			}()
+		}
 		return
 	}
 	if data.Type == "navigate" {
@@ -973,6 +990,8 @@ const guardScript = `(() => {
   else if (window.webkit?.messageHandlers?.external?.postMessage) window.webkit.messageHandlers.external.postMessage(message);
   else if (window._wails?.invoke) window._wails.invoke(message);
  };
+ // 向 F12 控制台提供固定文档入口，只发送原生意图；来源、窗口与 host 权限仍由 Go 校验。
+ window.hybridDocs = () => { send({type:'open-docs'}); return '已请求打开开发文档（需要 host 权限）'; };
  if (document.documentURI.startsWith('chrome-error:') || location.protocol === 'chrome-error:') send({type:'failed'});
  else if (location.pathname !== '/shell/status.html') send({type:'ready'});
  document.addEventListener('click', e => {

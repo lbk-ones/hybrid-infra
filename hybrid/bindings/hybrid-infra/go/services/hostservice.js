@@ -94,6 +94,16 @@ export function GetStartupState() {
 }
 
 /**
+ * OpenDeveloperDocs 检查 host 能力和原生窗口归属后打开固定开发文档与示例窗口，不接受目标 URL 或任意窗口选项。
+ * @returns {$CancellablePromise<host$0.WindowInfo>}
+ */
+export function OpenDeveloperDocs() {
+    return $Call.ByID(1748366276).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType3($result);
+    }));
+}
+
+/**
  * Quit 检查 lifecycle 权限后请求退出应用；存在未完成任务时返回错误，不直接绕过退出保护。
  * @returns {$CancellablePromise<void>}
  */
