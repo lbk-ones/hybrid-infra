@@ -48,6 +48,8 @@ console.log(answer); // "1" 或 "0"
 
 详细用法与限制：[前端接入说明](docs/frontend-integration.md)。
 
+页面来源通过 `pageMode` 区分：`builtin` 加载 EXE 内置资源，`http` 加载 HTTP(S) 网站，`local` 加载 EXE 旁的磁盘网页。EXE 同目录 HTML 可配置 `{"pageMode":"local","localRoot":".","url":"/index.html"}`，页面用 `./native/client.js` 接入完整 SDK；无需额外启动网页服务，修改后按 F5 重读。完整演示见 [本地 HTML 示例](examples/local-page/index.html)。
+
 ## 配置与数据
 
 参考 [settings.example.json](settings.example.json)。查找顺序：

@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>本地 HTML 接入示例</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 40px 24px;
+        min-height: 100vh;
+        font:
+          15px/1.8 "Segoe UI",
+          "Microsoft YaHei",
+          sans-serif;
+        color: #244c3d;
+        background: #f1f7f3;
+      }
+      main {
+        max-width: 760px;
+        margin: auto;
+        padding: 32px;
+        background: white;
+        border: 1px solid #dbe7df;
+        border-radius: 16px;
+      }
+      h1 {
+        margin: 8px 0 12px;
+        line-height: 1.4;
+      }
+      small {
+        color: #71877b;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 20px 0;
+      }
+      button,
+      a {
+        padding: 9px 15px;
+        border: 1px solid #c7d9cc;
+        border-radius: 7px;
+        color: #17684d;
+        background: #f5faf7;
+        font: inherit;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      pre {
+        padding: 16px;
+        background: #153c2e;
+        color: #dff4e7;
+        border-radius: 8px;
+        overflow-wrap: anywhere;
+        white-space: pre-wrap;
+        font:
+          13px/1.8 Consolas,
+          monospace;
+      }
+      input {
+        font: inherit;
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #c7d9cc;
+        border-radius: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <small>HYBRID / LOCAL HTML</small>
+      <h1>这份页面来自 EXE 旁的 HTML。</h1>
+      <p>
+        修改这份 HTML 后按 F5，即可重新读取。外壳内置页面依然可用，下面的按钮会调用真实桌面 SDK。
+      </p>
+      <label for="message">通知内容</label>
+      <input id="message" value="本地 HTML 已成功接入外壳" />
+      <div class="actions">
+        <button id="notify" disabled>显示桌面通知</button>
+        <button id="docs" disabled>打开开发文档</button>
+        <a href="/shell/docs.html">访问内置文档页面</a>
+      </div>
+      <pre id="result" role="status">正在连接桌面外壳…</pre>
+      <small>将整个 hybrid/ 复制到本 HTML 旁并命名为 native/。SDK 和页面需与 EXE 版本配套。</small>
+    </main>
+    <script type="module">
+      const result = document.getElementById("result");
+      const notify = document.getElementById("notify");
+      const docs = document.getElementById("docs");
+
+      /** 连接同目录 SDK 并绑定真实桌面调用；缺少资源或授权时在页面展示原因，不自动修改配置。 */
+      async function connect() {
+        try {
+          const { Hybrid, UI, Host } = await import("./native/client.js");
+          const info = await Hybrid.connect();
+          await Host.Ready();
+          result.textContent = JSON.stringify(
+            { mode: "local", version: info.version, capabilities: info.capabilities },
+            null,
+            2,
+          );
+          notify.disabled = false;
+          docs.disabled = false;
+          // 只在用户点击时显示通知，便于验证外置 HTML 确实调用了原生能力。
+          notify.addEventListener("click", async () => {
+            try {
+              const id = await UI.Notify(document.getElementById("message").value);
+              result.textContent = `通知已创建：${id}`;
+            } catch (error) {
+              result.textContent = `${error.code || "E_CALL"}: ${error.message}`;
+            }
+          });
+          docs.addEventListener("click", async () => {
+            try {
+              await Hybrid.openDocs();
+            } catch (error) {
+              result.textContent = `${error.code || "E_CALL"}: ${error.message}`;
+            }
+          });
+        } catch (error) {
+          result.textContent = `连接失败：${error.message}\n请确认 native/ 中包含完整 SDK，并从桌面外壳的 local 模式打开页面。`;
+        }
+      }
+      void connect();
+    </script>
+  </body>
+</html>

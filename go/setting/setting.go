@@ -63,6 +63,8 @@ type PkgInfo struct {
 	ShellPrograms       []string            `json:"shellPrograms"` // 允许程序模式执行的程序；启动时解析为固定绝对路径，默认空列表。
 	Title               string              `json:"title"`
 	Url                 string              `json:"url"`
+	PageMode            string              `json:"pageMode"`  // builtin 使用内置资源，http 加载网址，local 读取 EXE 旁目录；留空按旧 url 规则推断。
+	LocalRoot           string              `json:"localRoot"` // local 模式的网页目录，相对路径以 EXE 所在目录为基准，留空使用 web。
 	Debug               bool                `json:"debug"`
 	Frameless           bool                `json:"frameless"`
 	Width               int                 `json:"width"`
@@ -205,6 +207,9 @@ func (p *PkgInfo) validate() error {
 		!(parsed.Scheme == "" && parsed.Host == "" && len(p.Url) > 0 && p.Url[0] == '/') {
 		return errors.New("url must be an absolute HTTP(S) URL or a local path starting with /")
 	}
+	if err := p.validatePage(); err != nil {
+		return err
+	}
 	origins := append(append([]string{}, p.AllowedOrigins...), p.NavigationOrigins...)
 	permissionSets := map[string][]string{}
 	for origin, capabilities := range p.Permissions {
@@ -236,7 +241,7 @@ func (p *PkgInfo) Validate() error { return p.validate() }
 // TrustedOrigins 汇总可信页面来源，具体能力仍由来源权限策略计算。
 func (p *PkgInfo) TrustedOrigins() []string {
 	origins := append([]string{}, p.AllowedOrigins...)
-	if u, err := url.Parse(p.Url); err == nil && u.Host != "" {
+	if u, err := url.Parse(p.PageURL()); err == nil && u.Host != "" {
 		origins = append(origins, u.Scheme+"://"+u.Host)
 	}
 	keys := make([]string, 0, len(p.Permissions))

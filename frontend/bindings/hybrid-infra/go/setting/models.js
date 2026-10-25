@@ -94,6 +94,22 @@ export class PkgInfo {
              */
             this["url"] = "";
         }
+        if (!("pageMode" in $$source)) {
+            /**
+             * builtin 使用内置资源，http 加载网址，local 读取 EXE 旁目录；留空按旧 url 规则推断。
+             * @member
+             * @type {string}
+             */
+            this["pageMode"] = "";
+        }
+        if (!("localRoot" in $$source)) {
+            /**
+             * local 模式的网页目录，相对路径以 EXE 所在目录为基准，留空使用 web。
+             * @member
+             * @type {string}
+             */
+            this["localRoot"] = "";
+        }
         if (!("debug" in $$source)) {
             /**
              * @member
@@ -232,10 +248,10 @@ export class PkgInfo {
         const $$createField1_0 = $$createType0;
         const $$createField2_0 = $$createType1;
         const $$createField3_0 = $$createType2;
-        const $$createField11_0 = $$createType2;
-        const $$createField19_0 = $$createType2;
-        const $$createField21_0 = $$createType3;
-        const $$createField22_0 = $$createType2;
+        const $$createField13_0 = $$createType2;
+        const $$createField21_0 = $$createType2;
+        const $$createField23_0 = $$createType3;
+        const $$createField24_0 = $$createType2;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("icons" in $$parsedSource) {
             $$parsedSource["icons"] = $$createField1_0($$parsedSource["icons"]);
@@ -247,16 +263,16 @@ export class PkgInfo {
             $$parsedSource["shellPrograms"] = $$createField3_0($$parsedSource["shellPrograms"]);
         }
         if ("allowedOrigins" in $$parsedSource) {
-            $$parsedSource["allowedOrigins"] = $$createField11_0($$parsedSource["allowedOrigins"]);
+            $$parsedSource["allowedOrigins"] = $$createField13_0($$parsedSource["allowedOrigins"]);
         }
         if ("navigationOrigins" in $$parsedSource) {
-            $$parsedSource["navigationOrigins"] = $$createField19_0($$parsedSource["navigationOrigins"]);
+            $$parsedSource["navigationOrigins"] = $$createField21_0($$parsedSource["navigationOrigins"]);
         }
         if ("permissions" in $$parsedSource) {
-            $$parsedSource["permissions"] = $$createField21_0($$parsedSource["permissions"]);
+            $$parsedSource["permissions"] = $$createField23_0($$parsedSource["permissions"]);
         }
         if ("desktopCapabilities" in $$parsedSource) {
-            $$parsedSource["desktopCapabilities"] = $$createField22_0($$parsedSource["desktopCapabilities"]);
+            $$parsedSource["desktopCapabilities"] = $$createField24_0($$parsedSource["desktopCapabilities"]);
         }
         return new PkgInfo(/** @type {Partial<PkgInfo>} */($$parsedSource));
     }

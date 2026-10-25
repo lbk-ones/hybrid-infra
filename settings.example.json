@@ -3,6 +3,7 @@
   "splashEnabled": true,
   "icons": { "application": "", "tray": "" },
   "url": "/",
+  "pageMode": "builtin",
   "debug": false,
   "frameless": false,
   "width": 1280,

@@ -1,6 +1,70 @@
 # 前端接入说明
 
-## 两种接入方式
+## 三种页面来源
+
+配置 `pageMode` 明确区分入口来源：
+
+| pageMode | url 示例 | 页面来自哪里 |
+| --- | --- | --- |
+| `builtin` | `/`、`/shell/docs.html` | 编译进 EXE 的资源 |
+| `http` | `https://app.example.com/` | 已运行的 HTTP(S) 网站，不读取 EXE 旁 HTML |
+| `local` | `/index.html` | `localRoot` 指定的磁盘网页目录，由外壳自己提供，无需另开 HTTP 服务 |
+
+旧配置不写 `pageMode` 时，HTTP(S) 地址按 `http`，以 `/` 开头的路径按 `builtin`，保持原行为。模式与地址不匹配时明确报错，例如 `http` 不能填 `/index.html`。只有 `local` 可配置 `localRoot`。
+
+## EXE 同目录的 HTML
+
+文件可以按下面摆放：
+
+```text
+app/
+  hybrid-infra.exe
+  settings.json
+  index.html
+  style.css
+  native/              ← 复制整个 hybrid/ 的内容
+    client.js
+    runtime.js
+    bindings/...
+```
+
+配置：
+
+```json
+{
+  "pageMode": "local",
+  "localRoot": ".",
+  "url": "/index.html",
+  "desktopCapabilities": ["clipboard"]
+}
+```
+
+`localRoot` 相对 **EXE 所在目录** 解析，与启动工作目录、配置文件位置无关；也可以填绝对本地目录。留空默认读取 EXE 旁的 `web/`。如果网页放在 `web/`，把 `localRoot` 改为 `web`，HTML、CSS、SDK 都放进该目录。
+
+实际页面地址是 `http://wails.localhost/local/index.html`（平台实际协议以 WebView 为准）。HTML 中用 `./style.css`、`./native/client.js` 等相对路径；`/native/client.js` 是外壳根路径，不代表本地目录中的 native。子目录页面需按位置使用 `../native/client.js`。修改 HTML/JS/CSS 后按 F5 重读磁盘，不需要重新打包；修改模式或目录配置需要重启。
+
+本地页面的最小调用：
+
+```html
+<button id="notify">显示通知</button>
+<script type="module">
+  import { Hybrid, UI } from './native/client.js';
+  await Hybrid.connect();
+  document.getElementById('notify').onclick = () => UI.Notify('本地 HTML 已接入外壳');
+</script>
+```
+
+可直接参考仓库 `examples/local-page/` 的完整演示，复制页面和配置到 EXE 旁，再把整个 `hybrid/` 复制为 `native/`。
+
+外置资源只挂载在 `/local/` 下，不替换 `/shell/`、弹框和 Wails 运行时。不会列出目录，也不会回退缺失的文件为内置首页；文件越界和根目录外符号链接被拒绝。只公开网页资源类型：HTML、JS/MJS、CSS、图片、字体、WASM 和常见音视频；JSON、日志、EXE 等文件不作为静态资源开放，避免目录设为 EXE 同级时暴露应用配置。业务 JSON 可放在 JS 模块中导出，或通过业务 HTTP 接口加载。入口 HTML 或根目录缺失时，启动会明确报错。
+
+`local` 使用本地 `wails.localhost` 来源授权，默认基础能力与内置页面相同；扩展能力仍需 `desktopCapabilities` 或该来源的 `permissions`，不会因为文件在磁盘上就自动开放全部权限。HTTP 页面依旧按实际网站来源配置 `permissions`。
+
+推荐本地 SPA 使用 hash 路由，例如 `url: "/index.html#workspace"`；当前没有自动 history 回退。协议、通知和快捷键唤醒的 `/` 路由在 local 模式指向 `/local/`；用 `#workspace` 保留配置的入口文件。主动调用 `Windows.Open` 时用 `/local/details.html` 打开外置子页面，用 `/shell/docs.html` 打开内置页面。
+
+配置文件仍遵循原查找顺序：`HYBRID_SETTINGS`、用户数据目录、EXE 同目录、开发项目。若用户数据目录已有设置，它会优先于 EXE 旁的 `settings.json`。
+
+## 内置页面与 HTTP 网站
 
 **内置前端**：使用仓库的 `frontend/`，从 `frontend/bindings` 导入服务，用 `@wailsio/runtime` 导入事件、窗口等 API。构建后资源嵌入可执行文件，默认 `url: "/"`。使用自己的构建产物时，需要保留 Alert.html、Confirm.html、Show.html、dialog.css，以及 shell/status.html、shell/manage.html 和它们引用的资源。SPA history 路由需要自行配置资源回退，或使用 hash 路由。
 
@@ -11,6 +75,7 @@
 ```json
 {
   "title": "业务系统",
+  "pageMode": "http",
   "url": "https://app.example.com/portal/",
   "debug": false,
   "allowedOrigins": ["http://localhost:5173"]

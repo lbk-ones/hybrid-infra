@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "icons": "node ../scripts/generate-icons.mjs",
-    "format": "prettier --ignore-path ../.prettierignore --write \"src/**/*.{js,ts,css}\" \"public/**/*.{html,css,js}\" public/app-icon.svg \"shell/**/*.html\" index.html vite.config.js package.json tsconfig.json \"../scripts/*.{js,mjs}\" ../settings.example.json ../Taskfile.yml ../build/Taskfile.yml ../build/config.yml ../build/windows/Taskfile.yml ../.prettierrc.json",
-    "format:check": "prettier --ignore-path ../.prettierignore --check \"src/**/*.{js,ts,css}\" \"public/**/*.{html,css,js}\" public/app-icon.svg \"shell/**/*.html\" index.html vite.config.js package.json tsconfig.json \"../scripts/*.{js,mjs}\" ../settings.example.json ../Taskfile.yml ../build/Taskfile.yml ../build/config.yml ../build/windows/Taskfile.yml ../.prettierrc.json",
+    "format": "prettier --ignore-path ../.prettierignore --write \"src/**/*.{js,ts,css}\" \"public/**/*.{html,css,js}\" public/app-icon.svg \"shell/**/*.html\" index.html vite.config.js package.json tsconfig.json \"../scripts/*.{js,mjs}\" ../settings.example.json ../Taskfile.yml ../build/Taskfile.yml ../build/config.yml ../build/windows/Taskfile.yml ../.prettierrc.json \"../examples/local-page/**/*.{html,css,js,json}\"",
+    "format:check": "prettier --ignore-path ../.prettierignore --check \"src/**/*.{js,ts,css}\" \"public/**/*.{html,css,js}\" public/app-icon.svg \"shell/**/*.html\" index.html vite.config.js package.json tsconfig.json \"../scripts/*.{js,mjs}\" ../settings.example.json ../Taskfile.yml ../build/Taskfile.yml ../build/config.yml ../build/windows/Taskfile.yml ../.prettierrc.json \"../examples/local-page/**/*.{html,css,js,json}\"",
     "dev": "vite",
     "build:dev": "vite build --minify false --mode development",
     "build": "vite build --mode production",

@@ -225,7 +225,7 @@ func (c *Controller) TrackMain(w application.Window) {
 	if width <= 0 || height <= 0 {
 		width, height = 1280, 800
 	}
-	c.track(w, utils.NewWindowOptions{Name: w.Name(), Title: c.config.Title, Url: c.config.Url, Width: width, Height: height}, true, true)
+	c.track(w, utils.NewWindowOptions{Name: w.Name(), Title: c.config.Title, Url: c.config.PageURL(), Width: width, Height: height}, true, true)
 	w.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {
 		if c.quitting.Load() {
 			return

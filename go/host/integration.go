@@ -236,9 +236,13 @@ func (c *Controller) ActivateRoute(route string) error {
 	if err := Route(route); err != nil {
 		return err
 	}
-	base, err := url.Parse(c.config.Url)
+	base, err := url.Parse(c.config.PageURL())
 	if err != nil {
 		return Fail("E_INVALID_ARGUMENT", "主页面地址无效")
+	}
+	// local 的站内绝对路由仍留在外置网页挂载目录；hash 路由按原入口解析，避免跳回外壳内置资源。
+	if c.config.EffectivePageMode() == "local" && strings.HasPrefix(route, "/") {
+		route = setting.LocalPagePrefix + strings.TrimPrefix(route, "/")
 	}
 	target, err := base.Parse(route)
 	if err != nil {

@@ -1,0 +1,9 @@
+{
+  "title": "本地 HTML 应用",
+  "pageMode": "local",
+  "localRoot": ".",
+  "url": "/index.html",
+  "width": 1000,
+  "height": 760,
+  "splashEnabled": true
+}

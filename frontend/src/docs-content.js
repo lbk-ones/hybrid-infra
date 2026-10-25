@@ -198,6 +198,53 @@ function doc(category, id, title, summary, details) {
 export const features = [
   doc(
     "start",
+    "page-sources",
+    "页面来源与本地 HTML",
+    "区分 EXE 内置页面、HTTP 网站和 EXE 旁的本地 HTML；本地页面无需额外启动网页服务。",
+    {
+      api: [],
+      caps: [],
+      language: "json",
+      params: [
+        [
+          "pageMode",
+          "builtin | http | local",
+          "缺省按 url 推断",
+          "builtin 读 EXE 内置资源；http 访问网站；local 读磁盘网页。",
+        ],
+        [
+          "url",
+          "string",
+          "/",
+          "builtin/local 填 / 开头路径；http 必须为 HTTP(S) 网址。local 可填 /index.html#workspace。",
+        ],
+        [
+          "localRoot",
+          "本地目录",
+          "web",
+          "仅 local 可用；相对 EXE 目录解析，填 . 表示 EXE 同目录。",
+        ],
+      ],
+      code: `{
+  "pageMode": "local",
+  "localRoot": ".",
+  "url": "/index.html",
+  "desktopCapabilities": ["clipboard"]
+}`,
+      returns:
+        "修改启动配置后重启；本地 HTML、JS、CSS 修改后按 F5 直接重读磁盘，无需重新编译 EXE。",
+      notes: [
+        "把 index.html、样式和整个 SDK 放在同一根目录，SDK 目录命名 native，页面通过 ./native/client.js 导入。",
+        "local 实际挂载 /local/ 路径，外壳的 /shell/ 页面和运行时仍使用内置资源。子窗口用 /local/details.html 打开外置 HTML。",
+        "http 示例：pageMode: http，url: https://app.example.com/；builtin 示例：pageMode: builtin，url: /。旧配置不写 pageMode 仍可用。",
+        "目录和入口必须存在。只开放网页资源类型，不公开 JSON、日志或 EXE；不列目录、不允许根目录越界。业务 JSON 可用 JS 模块或 HTTP 接口。",
+        "本地页面按内置来源授权，扩展能力仍需 desktopCapabilities；HTTP 网站按实际 origin 配 permissions。",
+        "同级 settings.json 仍受原配置查找顺序影响：环境变量和用户数据目录的配置优先。",
+      ],
+    },
+  ),
+  doc(
+    "start",
     "quickstart",
     "快速接入",
     "把完整 SDK 放入业务前端的静态目录，用同一套接口连接桌面宿主。",

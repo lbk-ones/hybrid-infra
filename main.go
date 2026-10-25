@@ -8,6 +8,7 @@ import (
 	"log"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"runtime"
 	"time"
 
@@ -52,6 +53,15 @@ func main() {
 		log.Fatal(err)
 	}
 	controller := host.New(config, dir)
+	executable, err := os.Executable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	pageAssets, err := host.NewPageAssets(config, application.BundledAssetFileServer(assets), filepath.Dir(executable))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer pageAssets.Close()
 	maintenance := host.NewMaintenance(controller, dir)
 	controller.OnMainRuntimeReady(maintenance.MarkUpdateHealthy)
 	appIcon, err := iconAssets.ReadFile("frontend/public/app-icon.png")
@@ -65,7 +75,7 @@ func main() {
 	options := application.Options{
 		Icon: appIcon,
 		Name: "hybrid-infra", Description: "Hybrid desktop host",
-		Assets: application.AssetOptions{Handler: application.BundledAssetFileServer(assets), Middleware: application.ChainMiddleware(utils.AssetMiddleware(config.TrustedOrigins()), controller.Policy.Middleware)},
+		Assets: application.AssetOptions{Handler: pageAssets, Middleware: application.ChainMiddleware(utils.AssetMiddleware(config.TrustedOrigins()), controller.Policy.Middleware)},
 		// 仅记录错误码，避免将底层错误中的业务内容写入诊断。
 		LogLevel: slog.Level(config.LogLevel), MarshalError: func(err error) []byte { maintenance.RecordError(err); return host.MarshalError(err) },
 		Mac:               application.MacOptions{ApplicationShouldTerminateAfterLastWindowClosed: config.CloseBehavior != "hide"},
