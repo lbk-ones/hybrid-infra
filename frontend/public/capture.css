@@ -1,1 +1,68 @@
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;font:13px/1.5 "Segoe UI","Microsoft YaHei",sans-serif;--wails-draggable:no-drag!important;user-select:none;cursor:crosshair}*{box-sizing:border-box;--wails-draggable:no-drag!important}#capture-background{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;object-fit:fill}#capture-shade{position:fixed;inset:0;background:rgba(10,20,16,.35);pointer-events:none}#capture-region{position:fixed;border:2px solid #61e4b5;box-shadow:0 0 0 100000px rgba(10,20,16,.35);pointer-events:none}#capture-size{position:absolute;top:6px;left:6px;padding:3px 8px;background:#173c2d;color:#eafff6;border-radius:4px;white-space:nowrap}.capture-help{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:rgba(19,44,32,.95);color:#fff;padding:12px 22px;border-radius:10px;box-shadow:0 4px 20px #0004;pointer-events:none;text-align:center}.capture-help span{display:block;color:#c5dccf;font-size:12px;margin-top:3px}
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #111;
+  font:
+    13px/1.5 "Segoe UI",
+    "Microsoft YaHei",
+    sans-serif;
+  --wails-draggable: no-drag !important;
+  user-select: none;
+  cursor: crosshair;
+}
+* {
+  box-sizing: border-box;
+  --wails-draggable: no-drag !important;
+}
+#capture-background {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  object-fit: fill;
+}
+#capture-shade {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 20, 16, 0.35);
+  pointer-events: none;
+}
+#capture-region {
+  position: fixed;
+  border: 2px solid #61e4b5;
+  box-shadow: 0 0 0 100000px rgba(10, 20, 16, 0.35);
+  pointer-events: none;
+}
+#capture-size {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 3px 8px;
+  background: #173c2d;
+  color: #eafff6;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.capture-help {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(19, 44, 32, 0.95);
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px #0004;
+  pointer-events: none;
+  text-align: center;
+}
+.capture-help span {
+  display: block;
+  color: #c5dccf;
+  font-size: 12px;
+  margin-top: 3px;
+}

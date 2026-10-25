@@ -1,6 +1,89 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>通知与弹窗 · Hybrid</title><link rel="stylesheet" href="/shell.css"/><link rel="stylesheet" href="/desktop.css"/></head>
-<body class="manage-page"><header class="manage-header"><div><p class="eyebrow">HYBRID / UI PLAYGROUND</p><h1>通知与弹窗</h1><p>可堆叠的轻量通知，统一可控的拖拽体验。</p></div><nav><a href="/shell/desktop.html">桌面能力</a><a href="/">工作台 ↗</a></nav></header>
-<main class="manage-main desktop-main"><div id="ui-notice" class="desktop-wide" role="status" aria-live="polite">正在连接宿主…</div><aside class="desktop-guide"><strong>通知默认右上角，展示四秒，允许拖拽</strong><p>顶部进度条展示剩余时间。同位置通知按顺序堆叠；关闭后收拢，拖离队列的通知不会被后续布局拉回。</p></aside>
-<section class="manage-panel"><div class="panel-heading"><h2>显示设置</h2><span>ui</span></div><label>通知文本<textarea id="notify-text" rows="4">操作已完成，业务数据已同步。</textarea></label><label>位置<select id="ui-place"><option value="topRight">右上角（默认）</option><option value="topLeft">左上角</option><option value="topCenter">顶部居中</option><option value="center">居中</option><option value="bottomRight">右下角</option><option value="bottomLeft">左下角</option><option value="bottomCenter">底部居中</option></select></label><label>通知展示秒数<input id="notify-duration" type="number" min="0.1" max="3600" step="0.1" value="4"/></label><label class="check"><input id="ui-draggable" type="checkbox" checked/>允许拖拽（通知 / Alert / Confirm / Show）</label><div class="actions"><button id="notify-one" disabled>发送通知</button><button id="notify-stack" disabled>连续发送三条</button><button id="notify-default" disabled>只传 text，体验默认值</button></div></section>
-<section class="manage-panel"><div class="panel-heading"><h2>其他弹窗</h2><span>draggable</span></div><p class="panel-description">下面的弹窗使用左侧拖拽开关。按钮、链接和输入控件保留点击操作；关闭开关会禁用窗口内拖拽区域。</p><div class="actions"><button id="ui-alert" disabled>消息 Alert</button><button id="ui-confirm" disabled>确认 Confirm</button><button id="ui-show" disabled>自定义 Show</button></div><label>操作记录<textarea id="ui-output" rows="12" readonly placeholder="调用结果会显示在这里"></textarea></label></section></main><script type="module" src="/src/shell-ui.js"></script></body></html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>通知与弹窗 · Hybrid</title>
+    <link rel="stylesheet" href="/shell.css" />
+    <link rel="stylesheet" href="/desktop.css" />
+  </head>
+  <body class="manage-page">
+    <header class="manage-header">
+      <div>
+        <p class="eyebrow">HYBRID / UI PLAYGROUND</p>
+        <h1>通知与弹窗</h1>
+        <p>可堆叠的轻量通知，统一可控的拖拽体验。</p>
+      </div>
+      <nav><a href="/shell/desktop.html">桌面能力</a><a href="/">工作台 ↗</a></nav>
+    </header>
+    <main class="manage-main desktop-main">
+      <div id="ui-notice" class="desktop-wide" role="status" aria-live="polite">正在连接宿主…</div>
+      <aside class="desktop-guide">
+        <strong>通知默认右上角，展示四秒，允许拖拽</strong>
+        <p>
+          顶部进度条展示剩余时间。同位置通知按顺序堆叠；关闭后收拢，拖离队列的通知不会被后续布局拉回。
+        </p>
+      </aside>
+      <section class="manage-panel">
+        <div class="panel-heading">
+          <h2>显示设置</h2>
+          <span>ui</span>
+        </div>
+        <label
+          >通知文本<textarea id="notify-text" rows="4">
+操作已完成，业务数据已同步。</textarea
+          ></label
+        ><label
+          >位置<select id="ui-place">
+            <option value="topRight">右上角（默认）</option>
+            <option value="topLeft">左上角</option>
+            <option value="topCenter">顶部居中</option>
+            <option value="center">居中</option>
+            <option value="bottomRight">右下角</option>
+            <option value="bottomLeft">左下角</option>
+            <option value="bottomCenter">底部居中</option>
+          </select></label
+        ><label
+          >通知展示秒数<input
+            id="notify-duration"
+            type="number"
+            min="0.1"
+            max="3600"
+            step="0.1"
+            value="4" /></label
+        ><label class="check"
+          ><input id="ui-draggable" type="checkbox" checked />允许拖拽（通知 / Alert / Confirm /
+          Show）</label
+        >
+        <div class="actions">
+          <button id="notify-one" disabled>发送通知</button
+          ><button id="notify-stack" disabled>连续发送三条</button
+          ><button id="notify-default" disabled>只传 text，体验默认值</button>
+        </div>
+      </section>
+      <section class="manage-panel">
+        <div class="panel-heading">
+          <h2>其他弹窗</h2>
+          <span>draggable</span>
+        </div>
+        <p class="panel-description">
+          下面的弹窗使用左侧拖拽开关。按钮、链接和输入控件保留点击操作；关闭开关会禁用窗口内拖拽区域。
+        </p>
+        <div class="actions">
+          <button id="ui-alert" disabled>消息 Alert</button
+          ><button id="ui-confirm" disabled>确认 Confirm</button
+          ><button id="ui-show" disabled>自定义 Show</button>
+        </div>
+        <label
+          >操作记录<textarea
+            id="ui-output"
+            rows="12"
+            readonly
+            placeholder="调用结果会显示在这里"
+          ></textarea>
+        </label>
+      </section>
+    </main>
+    <script type="module" src="/src/shell-ui.js"></script>
+  </body>
+</html>

@@ -1,1 +1,76 @@
-.maintenance-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:22px 0}.maintenance-metrics div{background:#f3f7f5;border:1px solid #e1e9e4;border-radius:12px;padding:16px}.maintenance-metrics span{display:block;font-size:12px;color:#65746b}.maintenance-metrics strong{display:block;margin-top:8px;font-size:21px;font-weight:550}.maintenance-events{font:12px/1.8 ui-monospace,monospace;max-height:180px;overflow:auto;white-space:pre-wrap;color:#57695d}.maintenance-backups{display:grid;gap:10px;margin-top:18px}.maintenance-backups article{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:18px;border:1px solid #e1e9e4;border-radius:12px}.maintenance-backups p{margin:5px 0;color:#65746b;font-size:13px}progress{display:block;width:100%;height:7px;accent-color:#19765a;margin:24px 0}dialog{max-width:480px;padding:30px;border:1px solid #d9e4dc;border-radius:18px;color:#1b3529;box-shadow:0 20px 90px #142e2530}dialog::backdrop{background:#142e2570}dialog p{line-height:1.8}button:disabled{opacity:.45;cursor:not-allowed}
+.maintenance-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 22px 0;
+}
+.maintenance-metrics div {
+  background: #f3f7f5;
+  border: 1px solid #e1e9e4;
+  border-radius: 12px;
+  padding: 16px;
+}
+.maintenance-metrics span {
+  display: block;
+  font-size: 12px;
+  color: #65746b;
+}
+.maintenance-metrics strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 21px;
+  font-weight: 550;
+}
+.maintenance-events {
+  font:
+    12px/1.8 ui-monospace,
+    monospace;
+  max-height: 180px;
+  overflow: auto;
+  white-space: pre-wrap;
+  color: #57695d;
+}
+.maintenance-backups {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+.maintenance-backups article {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 18px;
+  border: 1px solid #e1e9e4;
+  border-radius: 12px;
+}
+.maintenance-backups p {
+  margin: 5px 0;
+  color: #65746b;
+  font-size: 13px;
+}
+progress {
+  display: block;
+  width: 100%;
+  height: 7px;
+  accent-color: #19765a;
+  margin: 24px 0;
+}
+dialog {
+  max-width: 480px;
+  padding: 30px;
+  border: 1px solid #d9e4dc;
+  border-radius: 18px;
+  color: #1b3529;
+  box-shadow: 0 20px 90px #142e2530;
+}
+dialog::backdrop {
+  background: #142e2570;
+}
+dialog p {
+  line-height: 1.8;
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

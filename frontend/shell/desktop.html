@@ -1,17 +1,209 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>桌面能力 · Hybrid</title><link rel="stylesheet" href="/shell.css"/><link rel="stylesheet" href="/desktop.css"/></head>
-<body class="manage-page">
-<header class="manage-header"><div><p class="eyebrow">HYBRID / DESKTOP TOOLKIT</p><h1>桌面能力</h1><p>文件、下载和系统集成，让业务前端连接桌面。</p></div><nav><a href="/shell/bridge.html">命令 / 缓存 / 事件</a><a href="/shell/manage.html">宿主管理</a><a href="/">能力工作台 ↗</a></nav></header>
-<main class="manage-main desktop-main">
-<div id="notice" role="status" aria-live="polite">正在连接桌面宿主…</div>
-<aside class="desktop-guide"><strong>按需授权，明确生效</strong><p>未授权的区域不可操作。内置页面使用 desktopCapabilities；远程业务页面在 permissions 中逐项授权。文件凭证限当前来源和窗口。</p><div id="capabilities" class="capabilities"></div></aside>
-<section class="manage-panel" data-cap="files"><div class="panel-heading"><h2>01 / 文件工作区</h2><span class="cap-state"></span></div><p class="panel-description">先通过系统对话框选择文件。小文件读写上限 512 KiB，保存选择会授权覆盖目标文件。</p><div class="actions"><button id="file-open">打开文件</button><button id="file-directory">选择目录</button><button id="file-save">选择保存位置</button><button id="file-reveal">在资源管理器定位</button><button id="file-release">释放凭证</button></div><output id="file-info">尚未选择文件</output><label>UTF-8 文本内容<textarea id="file-content" rows="4" placeholder="选择普通文件后读取，或输入需要导出的文本"></textarea></label><div class="actions"><button id="file-read">读取文本</button><button id="file-write">保存文本</button></div></section>
-<section class="manage-panel desktop-wide" data-cap="downloads"><div class="panel-heading"><h2>02 / 下载中心</h2><span class="cap-state"></span></div><p class="panel-description">下载到当前选择的保存位置；最多同时 4 个任务，单文件上限 2 GiB。任务期间受退出保护，取消与失败后可从头重试。</p><div class="input-action"><label>下载地址<input id="download-url" type="url" placeholder="https://example.com/report.csv"/></label><button id="download-start">选择目标并下载</button><button id="download-refresh">刷新</button></div><div id="downloads" class="download-list"><p class="panel-description">暂无下载任务</p></div></section>
-<section class="manage-panel" data-cap="clipboard"><div class="panel-heading"><h2>03 / 系统剪贴板</h2><span class="cap-state"></span></div><label>文本<textarea id="clipboard-text" rows="3" placeholder="要复制的文本"></textarea></label><div class="actions"><button id="clipboard-read">读取文本</button><button id="clipboard-write">复制文本</button><button id="clipboard-clear">清空</button></div><label>PNG 图像（≤512 KiB）<input id="clipboard-image" type="file" accept="image/png"/></label><div class="actions"><button id="image-write">复制 PNG</button><button id="image-read">读取图像</button></div><img id="image-preview" alt="剪贴板图像预览" hidden/></section>
-<section class="manage-panel" data-cap="notifications"><div class="panel-heading"><h2>04 / 系统通知</h2><span class="cap-state"></span></div><label>标题<input id="notification-title" value="业务任务已完成" maxlength="120"/></label><label>正文<input id="notification-body" value="点击通知返回工作空间" maxlength="2000"/></label><label>点击后的站内路由<input id="notification-route" value="/#workspace"/></label><button id="notify">发送系统通知</button><p class="panel-description">由系统通知中心控制显示；点击唤醒主窗口。有未完成任务时不会替换业务页面。</p></section>
-<section class="manage-panel" data-cap="shortcuts"><div class="panel-heading"><h2>05 / 快捷入口</h2><span class="cap-state"></span></div><label>快捷键<input id="shortcut-key" value="Ctrl+Shift+Alt+H"/></label><label>站内路由<input id="shortcut-route" value="/#workspace"/></label><label class="check"><input id="shortcut-global" type="checkbox"/>全局快捷键（应用未聚焦时也响应）</label><div class="actions"><button id="shortcut-register">注册</button><button id="shortcut-remove">注销</button></div><p class="panel-description">支持 Ctrl+Shift+[Alt+]字母或数字。快捷键在本次应用运行期间有效，冲突会明确报错。</p></section>
-<section class="manage-panel" data-cap="protocol"><div class="panel-heading"><h2>06 / 协议唤醒</h2><span class="cap-state"></span></div><p class="panel-description">显式注册当前用户的 hybrid-infra 协议，支持单实例转交站内路由。开发构建路径变化后需先移除旧注册。</p><code>hybrid-infra://open?route=%2F%23workspace</code><div class="actions"><button id="protocol-register">注册协议</button><button id="protocol-remove">移除协议</button></div></section>
-<section class="manage-panel" data-cap="settings"><div class="panel-heading"><h2>07 / 偏好与启动设置</h2><span class="cap-state"></span></div><div class="preference-grid"><label>主题<select id="theme"><option value="system">跟随系统</option><option value="light">浅色</option><option value="dark">深色</option></select></label><label>语言<select id="locale"><option value="zh-CN">简体中文</option><option value="en-US">English</option></select></label></div><label class="check"><input id="notifications-enabled" type="checkbox" checked/>启用系统通知</label><div class="actions"><button id="settings-save">保存偏好</button><button id="settings-reset">恢复默认偏好</button></div><output id="settings-state">读取中…</output><details><summary>启动配置（保存后重启生效）</summary><p class="panel-description">包含窗口、来源权限、托盘等。修改前确认 JSON 完整；业务密码请使用系统凭据库。</p><textarea id="startup-settings" rows="12" spellcheck="false"></textarea><button id="startup-save">校验并保存启动配置</button></details></section>
-<section class="manage-panel" data-cap="credentials"><div class="panel-heading"><h2>08 / 系统凭据库</h2><span class="cap-state"></span></div><p class="panel-description">由 Windows 凭据管理器保存，按当前数据目录和页面来源隔离，不写入普通配置或 KV。值最多 2560 字节。</p><label>凭据名称<input id="credential-key" value="demo-token" autocomplete="off"/></label><label>秘密值<input id="credential-value" type="password" autocomplete="off" placeholder="读取后仍保持隐藏"/></label><div class="actions"><button id="credential-save">安全保存</button><button id="credential-read">读取到密码框</button><button id="credential-delete">删除</button></div><output id="credential-state"></output></section>
-</main><script type="module" src="/src/shell-desktop.js"></script></body></html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>桌面能力 · Hybrid</title>
+    <link rel="stylesheet" href="/shell.css" />
+    <link rel="stylesheet" href="/desktop.css" />
+  </head>
+  <body class="manage-page">
+    <header class="manage-header">
+      <div>
+        <p class="eyebrow">HYBRID / DESKTOP TOOLKIT</p>
+        <h1>桌面能力</h1>
+        <p>文件、下载和系统集成，让业务前端连接桌面。</p>
+      </div>
+      <nav>
+        <a href="/shell/bridge.html">命令 / 缓存 / 事件</a><a href="/shell/manage.html">宿主管理</a
+        ><a href="/">能力工作台 ↗</a>
+      </nav>
+    </header>
+    <main class="manage-main desktop-main">
+      <div id="notice" role="status" aria-live="polite">正在连接桌面宿主…</div>
+      <aside class="desktop-guide">
+        <strong>按需授权，明确生效</strong>
+        <p>
+          未授权的区域不可操作。内置页面使用 desktopCapabilities；远程业务页面在 permissions
+          中逐项授权。文件凭证限当前来源和窗口。
+        </p>
+        <div id="capabilities" class="capabilities"></div>
+      </aside>
+      <section class="manage-panel" data-cap="files">
+        <div class="panel-heading">
+          <h2>01 / 文件工作区</h2>
+          <span class="cap-state"></span>
+        </div>
+        <p class="panel-description">
+          先通过系统对话框选择文件。小文件读写上限 512 KiB，保存选择会授权覆盖目标文件。
+        </p>
+        <div class="actions">
+          <button id="file-open">打开文件</button><button id="file-directory">选择目录</button
+          ><button id="file-save">选择保存位置</button
+          ><button id="file-reveal">在资源管理器定位</button
+          ><button id="file-release">释放凭证</button>
+        </div>
+        <output id="file-info">尚未选择文件</output
+        ><label
+          >UTF-8 文本内容<textarea
+            id="file-content"
+            rows="4"
+            placeholder="选择普通文件后读取，或输入需要导出的文本"
+          ></textarea>
+        </label>
+        <div class="actions">
+          <button id="file-read">读取文本</button><button id="file-write">保存文本</button>
+        </div>
+      </section>
+      <section class="manage-panel desktop-wide" data-cap="downloads">
+        <div class="panel-heading">
+          <h2>02 / 下载中心</h2>
+          <span class="cap-state"></span>
+        </div>
+        <p class="panel-description">
+          下载到当前选择的保存位置；最多同时 4 个任务，单文件上限 2
+          GiB。任务期间受退出保护，取消与失败后可从头重试。
+        </p>
+        <div class="input-action">
+          <label
+            >下载地址<input
+              id="download-url"
+              type="url"
+              placeholder="https://example.com/report.csv" /></label
+          ><button id="download-start">选择目标并下载</button
+          ><button id="download-refresh">刷新</button>
+        </div>
+        <div id="downloads" class="download-list">
+          <p class="panel-description">暂无下载任务</p>
+        </div>
+      </section>
+      <section class="manage-panel" data-cap="clipboard">
+        <div class="panel-heading">
+          <h2>03 / 系统剪贴板</h2>
+          <span class="cap-state"></span>
+        </div>
+        <label
+          >文本<textarea id="clipboard-text" rows="3" placeholder="要复制的文本"></textarea>
+        </label>
+        <div class="actions">
+          <button id="clipboard-read">读取文本</button><button id="clipboard-write">复制文本</button
+          ><button id="clipboard-clear">清空</button>
+        </div>
+        <label
+          >PNG 图像（≤512 KiB）<input id="clipboard-image" type="file" accept="image/png"
+        /></label>
+        <div class="actions">
+          <button id="image-write">复制 PNG</button><button id="image-read">读取图像</button>
+        </div>
+        <img id="image-preview" alt="剪贴板图像预览" hidden />
+      </section>
+      <section class="manage-panel" data-cap="notifications">
+        <div class="panel-heading">
+          <h2>04 / 系统通知</h2>
+          <span class="cap-state"></span>
+        </div>
+        <label>标题<input id="notification-title" value="业务任务已完成" maxlength="120" /></label
+        ><label
+          >正文<input id="notification-body" value="点击通知返回工作空间" maxlength="2000" /></label
+        ><label>点击后的站内路由<input id="notification-route" value="/#workspace" /></label
+        ><button id="notify">发送系统通知</button>
+        <p class="panel-description">
+          由系统通知中心控制显示；点击唤醒主窗口。有未完成任务时不会替换业务页面。
+        </p>
+      </section>
+      <section class="manage-panel" data-cap="shortcuts">
+        <div class="panel-heading">
+          <h2>05 / 快捷入口</h2>
+          <span class="cap-state"></span>
+        </div>
+        <label>快捷键<input id="shortcut-key" value="Ctrl+Shift+Alt+H" /></label
+        ><label>站内路由<input id="shortcut-route" value="/#workspace" /></label
+        ><label class="check"
+          ><input id="shortcut-global" type="checkbox" />全局快捷键（应用未聚焦时也响应）</label
+        >
+        <div class="actions">
+          <button id="shortcut-register">注册</button><button id="shortcut-remove">注销</button>
+        </div>
+        <p class="panel-description">
+          支持 Ctrl+Shift+[Alt+]字母或数字。快捷键在本次应用运行期间有效，冲突会明确报错。
+        </p>
+      </section>
+      <section class="manage-panel" data-cap="protocol">
+        <div class="panel-heading">
+          <h2>06 / 协议唤醒</h2>
+          <span class="cap-state"></span>
+        </div>
+        <p class="panel-description">
+          显式注册当前用户的 hybrid-infra
+          协议，支持单实例转交站内路由。开发构建路径变化后需先移除旧注册。
+        </p>
+        <code>hybrid-infra://open?route=%2F%23workspace</code>
+        <div class="actions">
+          <button id="protocol-register">注册协议</button
+          ><button id="protocol-remove">移除协议</button>
+        </div>
+      </section>
+      <section class="manage-panel" data-cap="settings">
+        <div class="panel-heading">
+          <h2>07 / 偏好与启动设置</h2>
+          <span class="cap-state"></span>
+        </div>
+        <div class="preference-grid">
+          <label
+            >主题<select id="theme">
+              <option value="system">跟随系统</option>
+              <option value="light">浅色</option>
+              <option value="dark">深色</option>
+            </select></label
+          ><label
+            >语言<select id="locale">
+              <option value="zh-CN">简体中文</option>
+              <option value="en-US">English</option>
+            </select></label
+          >
+        </div>
+        <label class="check"
+          ><input id="notifications-enabled" type="checkbox" checked />启用系统通知</label
+        >
+        <div class="actions">
+          <button id="settings-save">保存偏好</button
+          ><button id="settings-reset">恢复默认偏好</button>
+        </div>
+        <output id="settings-state">读取中…</output>
+        <details>
+          <summary>启动配置（保存后重启生效）</summary>
+          <p class="panel-description">
+            包含窗口、来源权限、托盘等。修改前确认 JSON 完整；业务密码请使用系统凭据库。
+          </p>
+          <textarea id="startup-settings" rows="12" spellcheck="false"></textarea
+          ><button id="startup-save">校验并保存启动配置</button>
+        </details>
+      </section>
+      <section class="manage-panel" data-cap="credentials">
+        <div class="panel-heading">
+          <h2>08 / 系统凭据库</h2>
+          <span class="cap-state"></span>
+        </div>
+        <p class="panel-description">
+          由 Windows 凭据管理器保存，按当前数据目录和页面来源隔离，不写入普通配置或 KV。值最多 2560
+          字节。
+        </p>
+        <label>凭据名称<input id="credential-key" value="demo-token" autocomplete="off" /></label
+        ><label
+          >秘密值<input
+            id="credential-value"
+            type="password"
+            autocomplete="off"
+            placeholder="读取后仍保持隐藏"
+        /></label>
+        <div class="actions">
+          <button id="credential-save">安全保存</button
+          ><button id="credential-read">读取到密码框</button
+          ><button id="credential-delete">删除</button>
+        </div>
+        <output id="credential-state"></output>
+      </section>
+    </main>
+    <script type="module" src="/src/shell-desktop.js"></script>
+  </body>
+</html>

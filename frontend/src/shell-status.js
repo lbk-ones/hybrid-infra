@@ -40,8 +40,6 @@ async function navigate(home) {
     });
   }
 }
-document
-  .getElementById("retry")
-  .addEventListener("click", () => navigate(false));
+document.getElementById("retry").addEventListener("click", () => navigate(false));
 document.getElementById("home").addEventListener("click", () => navigate(true));
 refresh();

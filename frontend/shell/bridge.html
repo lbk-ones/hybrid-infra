@@ -1,78 +1,147 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>业务桥接 · Hybrid</title>
-    <link rel="stylesheet" href="/shell.css"/>
-    <link rel="stylesheet" href="/desktop.css"/>
-</head>
-<body class="manage-page">
-<header class="manage-header">
-    <div><p class="eyebrow">HYBRID / BUSINESS BRIDGE</p>
+    <link rel="stylesheet" href="/shell.css" />
+    <link rel="stylesheet" href="/desktop.css" />
+  </head>
+  <body class="manage-page">
+    <header class="manage-header">
+      <div>
+        <p class="eyebrow">HYBRID / BUSINESS BRIDGE</p>
         <h1>业务桥接</h1>
-        <p>命令、共享缓存与函数回调，让业务流程连接桌面。</p></div>
-    <nav><a href="/shell/desktop.html">桌面能力</a><a href="/">工作台 ↗</a></nav>
-</header>
-<main class="manage-main desktop-main">
-    <div id="bridge-notice" class="desktop-wide" role="status" aria-live="polite">正在连接…</div>
-    <aside class="desktop-guide"><strong id="bridge-environment">检测运行环境…</strong>
-        <p>默认只在同来源窗口间共享。跨来源须额外开启 cache.global / events.global；命令须显式开启 shell 并配置
-            shellPrograms。</p>
+        <p>命令、共享缓存与函数回调，让业务流程连接桌面。</p>
+      </div>
+      <nav><a href="/shell/desktop.html">桌面能力</a><a href="/">工作台 ↗</a></nav>
+    </header>
+    <main class="manage-main desktop-main">
+      <div id="bridge-notice" class="desktop-wide" role="status" aria-live="polite">正在连接…</div>
+      <aside class="desktop-guide">
+        <strong id="bridge-environment">检测运行环境…</strong>
+        <p>
+          默认只在同来源窗口间共享。跨来源须额外开启 cache.global / events.global；命令须显式开启
+          shell 并配置 shellPrograms。
+        </p>
         <div id="bridge-capabilities" class="capabilities"></div>
-    </aside>
-    <section class="manage-panel desktop-wide" data-bridge-cap="shell">
-        <div class="panel-heading"><h2>09 / Shell 命令</h2><span class="cap-state"></span></div>
-        <p class="panel-description">程序模式按白名单执行参数数组；完整脚本另需 shell.script。输出最多保留 256
-            KiB，命令期间受退出保护。</p>
-        <div class="preference-grid"><label>模式<select id="command-mode">
-            <option value="program">程序与参数</option>
-            <option value="script">PowerShell / sh 脚本</option>
-        </select></label><label>超时（毫秒）<input id="command-timeout" type="number" value="30000" min="1" max="600000"/></label>
+      </aside>
+      <section class="manage-panel desktop-wide" data-bridge-cap="shell">
+        <div class="panel-heading">
+          <h2>09 / Shell 命令</h2>
+          <span class="cap-state"></span>
         </div>
-        <label>白名单程序名称<input id="command-program" value="go"/></label><label>参数 JSON 数组<textarea
-            id="command-args" rows="2">["version"]</textarea></label><label>完整脚本<textarea id="command-script"
-                                                                                              rows="3"
-                                                                                              placeholder="显式授权 shell.script 后可用"></textarea></label>
+        <p class="panel-description">
+          程序模式按白名单执行参数数组；完整脚本另需 shell.script。输出最多保留 256
+          KiB，命令期间受退出保护。
+        </p>
+        <div class="preference-grid">
+          <label
+            >模式<select id="command-mode">
+              <option value="program">程序与参数</option>
+              <option value="script">PowerShell / sh 脚本</option>
+            </select></label
+          ><label
+            >超时（毫秒）<input
+              id="command-timeout"
+              type="number"
+              value="30000"
+              min="1"
+              max="600000"
+          /></label>
+        </div>
+        <label>白名单程序名称<input id="command-program" value="go" /></label
+        ><label>参数 JSON 数组<textarea id="command-args" rows="2">["version"]</textarea></label
+        ><label
+          >完整脚本<textarea
+            id="command-script"
+            rows="3"
+            placeholder="显式授权 shell.script 后可用"
+          ></textarea>
+        </label>
         <div class="actions">
-            <button id="command-run">执行</button>
-            <button id="command-cancel" disabled>取消命令</button>
+          <button id="command-run">执行</button>
+          <button id="command-cancel" disabled>取消命令</button>
         </div>
         <output id="command-state">尚未执行</output>
-        <label>标准输出 / 错误输出<textarea id="command-output" rows="6" readonly
-                                            placeholder="输出通过前端函数回调实时追加"></textarea></label></section>
-    <section class="manage-panel" data-bridge-cap="cache">
-        <div class="panel-heading"><h2>10 / 全局缓存</h2><span class="cap-state"></span></div>
-        <p class="panel-description">同来源窗口共享的内存缓存，应用退出后清空。持久化仍使用 Store，秘密使用系统凭据库。</p>
-        <label>命名空间<input id="cache-namespace" value="demo"/></label><label>键<input id="cache-key" value="sample"/></label><label>JSON
-        值<textarea id="cache-value" rows="3">{"message":"窗口间共享的数据"}</textarea></label><label>过期秒数（0 不过期）<input
-            id="cache-ttl" type="number" value="60" min="0" max="604800"/></label><label class="check"><input
-            id="cache-global" type="checkbox"/>跨来源全应用空间（cache.global）</label>
+        <label
+          >标准输出 / 错误输出<textarea
+            id="command-output"
+            rows="6"
+            readonly
+            placeholder="输出通过前端函数回调实时追加"
+          ></textarea>
+        </label>
+      </section>
+      <section class="manage-panel" data-bridge-cap="cache">
+        <div class="panel-heading">
+          <h2>10 / 全局缓存</h2>
+          <span class="cap-state"></span>
+        </div>
+        <p class="panel-description">
+          同来源窗口共享的内存缓存，应用退出后清空。持久化仍使用 Store，秘密使用系统凭据库。
+        </p>
+        <label>命名空间<input id="cache-namespace" value="demo" /></label
+        ><label>键<input id="cache-key" value="sample" /></label
+        ><label
+          >JSON 值<textarea id="cache-value" rows="3">
+{"message":"窗口间共享的数据"}</textarea
+          ></label
+        ><label
+          >过期秒数（0 不过期）<input
+            id="cache-ttl"
+            type="number"
+            value="60"
+            min="0"
+            max="604800" /></label
+        ><label class="check"
+          ><input id="cache-global" type="checkbox" />跨来源全应用空间（cache.global）</label
+        >
         <div class="actions">
-            <button id="cache-set">写入</button>
-            <button id="cache-get">读取</button>
-            <button id="cache-cas">按修订号更新</button>
-            <button id="cache-delete">删除此键</button>
+          <button id="cache-set">写入</button>
+          <button id="cache-get">读取</button>
+          <button id="cache-cas">按修订号更新</button>
+          <button id="cache-delete">删除此键</button>
         </div>
         <output id="cache-state">尚未读取；按修订号更新前先读取当前值。</output>
-    </section>
-    <section class="manage-panel" data-bridge-cap="events">
-        <div class="panel-heading"><h2>11 / 事件与回调</h2><span class="cap-state"></span></div>
-        <p class="panel-description">回调函数保留在本页面。先订阅再发送事件；先注册响应器再发送请求，可验证 Promise
-            返回值。</p><label>事件主题<input id="event-topic" value="demo:message"/></label><label>消息 JSON<textarea
-            id="event-value" rows="3">{"message":"来自桌面的事件"}</textarea></label><label>目标窗口（留空匹配同空间监听）<input
-            id="event-target" placeholder="例如 main-window"/></label><label class="check"><input id="event-global"
-                                                                                                  type="checkbox"/>跨来源全应用空间（events.global）</label>
-        <div class="actions">
-            <button id="event-on">订阅事件</button>
-            <button id="event-emit">发送事件</button>
-            <button id="event-handle">注册响应器</button>
-            <button id="event-request">发送请求</button>
-            <button id="event-off">取消全部监听</button>
+      </section>
+      <section class="manage-panel" data-bridge-cap="events">
+        <div class="panel-heading">
+          <h2>11 / 事件与回调</h2>
+          <span class="cap-state"></span>
         </div>
-        <label>回调记录<textarea id="event-output" rows="7" readonly placeholder="前端回调执行结果"></textarea></label>
-    </section>
-</main>
-<script type="module" src="/src/shell-bridge.js"></script>
-</body>
+        <p class="panel-description">
+          回调函数保留在本页面。先订阅再发送事件；先注册响应器再发送请求，可验证 Promise 返回值。
+        </p>
+        <label>事件主题<input id="event-topic" value="demo:message" /></label
+        ><label
+          >消息 JSON<textarea id="event-value" rows="3">
+{"message":"来自桌面的事件"}</textarea
+          ></label
+        ><label
+          >目标窗口（留空匹配同空间监听）<input
+            id="event-target"
+            placeholder="例如 main-window" /></label
+        ><label class="check"
+          ><input id="event-global" type="checkbox" />跨来源全应用空间（events.global）</label
+        >
+        <div class="actions">
+          <button id="event-on">订阅事件</button>
+          <button id="event-emit">发送事件</button>
+          <button id="event-handle">注册响应器</button>
+          <button id="event-request">发送请求</button>
+          <button id="event-off">取消全部监听</button>
+        </div>
+        <label
+          >回调记录<textarea
+            id="event-output"
+            rows="7"
+            readonly
+            placeholder="前端回调执行结果"
+          ></textarea>
+        </label>
+      </section>
+    </main>
+    <script type="module" src="/src/shell-bridge.js"></script>
+  </body>
 </html>

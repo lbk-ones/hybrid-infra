@@ -181,15 +181,64 @@ body.native-dialog * {
   font-size: 18px;
 }
 /* 禁用时覆盖各个子区域，启用时表单控件和链接仍保留正常交互。 */
-body.native-dialog :is(button,input,textarea,select,a,[contenteditable="true"]) { --wails-draggable: no-drag; }
-html[data-ui-draggable="false"], html[data-ui-draggable="false"] * { --wails-draggable: no-drag !important; }
-@keyframes hybrid-countdown { from { transform:scaleX(1); } to { transform:scaleX(0); } }
-.bar { transform-origin:left center; }
-.notification-shell { padding:20px 16px 16px;display:flex;flex-direction:row;align-items:flex-start;gap:12px; }
-.notification-icon { width:28px;height:28px;border-radius:9px;font-size:16px; }
-.notification-text { flex:1;min-width:0;max-height:78px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65;font-size:13px;color:#365346; }
-.notification-close { flex-shrink:0;margin-left:auto;border:0;border-radius:6px;width:24px;height:24px;background:#f0f5f2;color:#698274;cursor:pointer;font-size:19px; }
-.notification-close:focus-visible { outline:2px solid #21765e;outline-offset:2px; }
+body.native-dialog :is(button, input, textarea, select, a, [contenteditable="true"]) {
+  --wails-draggable: no-drag;
+}
+html[data-ui-draggable="false"],
+html[data-ui-draggable="false"] * {
+  --wails-draggable: no-drag !important;
+}
+@keyframes hybrid-countdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+.bar {
+  transform-origin: left center;
+}
+.notification-shell {
+  padding: 20px 16px 16px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+}
+.notification-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  font-size: 16px;
+}
+.notification-text {
+  flex: 1;
+  min-width: 0;
+  max-height: 78px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.65;
+  font-size: 13px;
+  color: #365346;
+}
+.notification-close {
+  flex-shrink: 0;
+  margin-left: auto;
+  border: 0;
+  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  background: #f0f5f2;
+  color: #698274;
+  cursor: pointer;
+  font-size: 19px;
+}
+.notification-close:focus-visible {
+  outline: 2px solid #21765e;
+  outline-offset: 2px;
+}
 .sample-close:focus-visible {
   outline: 2px solid #21765e;
   outline-offset: 2px;

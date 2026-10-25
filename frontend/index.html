@@ -22,26 +22,44 @@
           aria-label="能力工作台"
           title="能力工作台"
           ><span data-icon="grid"></span><span>能力工作台</span><i></i></a
-        ><a
-          class="nav-item"
-          href="#activity"
-          aria-label="操作记录"
-          title="操作记录"
+        ><a class="nav-item" href="#activity" aria-label="操作记录" title="操作记录"
           ><span data-icon="activity"></span><span>操作记录</span></a
         >
-        <a
-          class="nav-item"
-          href="/shell/manage.html"
-          aria-label="宿主管理"
-          title="宿主管理"
+        <a class="nav-item" href="/shell/manage.html" aria-label="宿主管理" title="宿主管理"
           ><span data-icon="window"></span><span>宿主管理</span></a
         >
       </nav>
-      <a class="nav-item" href="/shell/desktop.html" title="桌面能力与下载" aria-label="桌面能力与下载"><span data-icon="grid"></span><span>桌面能力</span></a>
-      <a class="nav-item" href="/shell/maintenance.html" title="诊断、备份与签名更新" aria-label="维护中心"><span data-icon="activity"></span><span>维护中心</span></a>
-      <a class="nav-item" href="/shell/ui.html" title="通知与弹窗拖拽" aria-label="通知与弹窗"><span data-icon="bell"></span><span>通知与弹窗</span></a>
-      <a class="nav-item" href="/shell/capture.html" title="坐标截图与手动框选" aria-label="区域截图"><span data-icon="position"></span><span>区域截图</span></a>
-      <a class="nav-item" href="/shell/bridge.html" title="命令、缓存与事件回调" aria-label="业务桥接"><span data-icon="activity"></span><span>业务桥接</span></a>
+      <a
+        class="nav-item"
+        href="/shell/desktop.html"
+        title="桌面能力与下载"
+        aria-label="桌面能力与下载"
+        ><span data-icon="grid"></span><span>桌面能力</span></a
+      >
+      <a
+        class="nav-item"
+        href="/shell/maintenance.html"
+        title="诊断、备份与签名更新"
+        aria-label="维护中心"
+        ><span data-icon="activity"></span><span>维护中心</span></a
+      >
+      <a class="nav-item" href="/shell/ui.html" title="通知与弹窗拖拽" aria-label="通知与弹窗"
+        ><span data-icon="bell"></span><span>通知与弹窗</span></a
+      >
+      <a
+        class="nav-item"
+        href="/shell/capture.html"
+        title="坐标截图与手动框选"
+        aria-label="区域截图"
+        ><span data-icon="position"></span><span>区域截图</span></a
+      >
+      <a
+        class="nav-item"
+        href="/shell/bridge.html"
+        title="命令、缓存与事件回调"
+        aria-label="业务桥接"
+        ><span data-icon="activity"></span><span>业务桥接</span></a
+      >
       <div class="sidebar-bottom">
         <span class="stack-mark">H</span>
         <div>Hybrid Infra<small>Go + Wails 桌面应用</small></div>
@@ -50,9 +68,7 @@
     </aside>
     <div class="app-shell">
       <header class="topbar">
-        <div class="breadcrumb">
-          工作空间 <span>/</span> <strong>能力工作台</strong>
-        </div>
+        <div class="breadcrumb">工作空间 <span>/</span> <strong>能力工作台</strong></div>
         <span class="environment" id="environment">正在检测环境</span>
       </header>
       <main id="workspace">
@@ -66,13 +82,9 @@
         </div>
         <section class="hero" aria-label="工作台介绍">
           <div class="hero-copy">
-            <span class="hero-tag"
-              ><span class="status-dot"></span>轻量外壳 · 原生体验</span
-            >
+            <span class="hero-tag"><span class="status-dot"></span>轻量外壳 · 原生体验</span>
             <h2>网页的灵活，<br />桌面的可能。</h2>
-            <p>
-              从一条消息到一个独立窗口，<br />在这里探索 Hybrid 的桌面交互能力。
-            </p>
+            <p>从一条消息到一个独立窗口，<br />在这里探索 Hybrid 的桌面交互能力。</p>
             <a class="hero-link" href="#capabilities"
               >开始体验 <span aria-hidden="true">↗</span></a
             >
@@ -81,9 +93,7 @@
             <div class="orbit orbit-one"></div>
             <div class="orbit orbit-two"></div>
             <div class="art-window">
-              <div class="art-title">
-                <i></i><i></i><i></i><span>hybrid / desktop</span>
-              </div>
+              <div class="art-title"><i></i><i></i><i></i><span>hybrid / desktop</span></div>
               <div class="art-content">
                 <div class="art-icon">h↗</div>
                 <div class="art-lines"><b></b><b></b><b></b></div>
@@ -119,9 +129,7 @@
               </div>
               <h3>消息提示</h3>
               <p>轻量、即时的消息反馈。<br />自动关闭，让操作保持流畅。</p>
-              <div class="card-meta">
-                <span>自动关闭</span><span>2 秒</span>
-              </div>
+              <div class="card-meta"><span>自动关闭</span><span>2 秒</span></div>
               <button id="alert" class="card-button">
                 发送一条提示 <span aria-hidden="true">↗</span>
               </button>
@@ -133,9 +141,7 @@
               </div>
               <h3>操作确认</h3>
               <p>给重要操作一次确认机会。<br />清晰选择，安心继续下一步。</p>
-              <div class="card-meta">
-                <span>双向交互</span><span>确认 / 取消</span>
-              </div>
+              <div class="card-meta"><span>双向交互</span><span>确认 / 取消</span></div>
               <button id="confirm" class="card-button">
                 打开确认弹窗 <span aria-hidden="true">↗</span>
               </button>
@@ -147,9 +153,7 @@
               </div>
               <h3>自定义浮窗</h3>
               <p>用自定义内容扩展交互。<br />自由呈现，适配更多业务场景。</p>
-              <div class="card-meta">
-                <span>灵活内容</span><span>HTML</span>
-              </div>
+              <div class="card-meta"><span>灵活内容</span><span>HTML</span></div>
               <button id="show" class="card-button">
                 预览自定义浮窗 <span aria-hidden="true">↗</span>
               </button>
@@ -161,9 +165,7 @@
               </div>
               <h3>独立窗口</h3>
               <p>将网页放进独立桌面窗口。<br />多窗口协作，拓展工作空间。</p>
-              <div class="card-meta">
-                <span>窗口复用</span><span>内置工作台</span>
-              </div>
+              <div class="card-meta"><span>窗口复用</span><span>内置工作台</span></div>
               <button id="openBaidu" class="card-button">
                 打开独立窗口 <span aria-hidden="true">↗</span>
               </button>
@@ -176,17 +178,13 @@
               <span data-icon="activity"></span>操作记录
               <span id="activity-count" class="count">0</span>
             </h2>
-            <button id="clear-log" class="text-button" disabled>
-              清空记录
-            </button>
+            <button id="clear-log" class="text-button" disabled>清空记录</button>
           </div>
           <div id="activity-list" role="log" aria-live="polite">
             <div class="empty-state">
               <span data-icon="activity"></span
               ><span
-                >一切就绪，试试上方的桌面能力吧。<small
-                  >最近的操作与结果会显示在这里</small
-                ></span
+                >一切就绪，试试上方的桌面能力吧。<small>最近的操作与结果会显示在这里</small></span
               >
             </div>
           </div>
@@ -197,11 +195,7 @@
         </footer>
       </main>
     </div>
-    <dialog
-      id="preview-dialog"
-      class="preview-dialog"
-      aria-labelledby="preview-title"
-    >
+    <dialog id="preview-dialog" class="preview-dialog" aria-labelledby="preview-title">
       <div class="preview-content">
         <span class="dialog-icon" aria-hidden="true">✓</span>
         <div>

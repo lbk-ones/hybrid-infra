@@ -6,8 +6,7 @@ const paths = {
     '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 1v6m0 10v6M1 12h6m10 0h6"/>',
   bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4M12 2V1"/>',
   check: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
-  layers:
-    '<path d="m12 3 10 5-10 5L2 8l10-5Zm-10 9 10 5 10-5M2 16l10 5 10-5"/>',
+  layers: '<path d="m12 3 10 5-10 5L2 8l10-5Zm-10 9 10 5 10-5M2 16l10 5 10-5"/>',
   window:
     '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M6 6.5h.01M9 6.5h.01m4 9 4-4m-4 0h4v4"/>',
 };
@@ -30,16 +29,13 @@ updateNavigation();
 
 // 只在桌面宿主中加载原生绑定，普通浏览器使用页面内弹框预览。
 const isDesktop = isDesktopShell();
-document.getElementById("environment").textContent = isDesktop
-  ? "正在连接宿主"
-  : "浏览器预览模式";
+document.getElementById("environment").textContent = isDesktop ? "正在连接宿主" : "浏览器预览模式";
 if (isDesktop) {
   import("./host-client.js")
     .then(async ({ Hybrid, Host }) => {
       const info = await Hybrid.connect();
       await Hybrid.call(() => Host.Ready(), { timeoutMs: 5000 });
-      document.getElementById("environment").textContent =
-        `宿主 ${info.version} 已连接`;
+      document.getElementById("environment").textContent = `宿主 ${info.version} 已连接`;
     })
     .catch((error) => {
       document.getElementById("environment").textContent = "宿主连接失败";
@@ -49,9 +45,7 @@ if (isDesktop) {
 let servicePromise;
 /** 按需加载并缓存原生弹框绑定；加载失败后清除缓存，允许下一次操作重新尝试。 */
 const services = () =>
-  (servicePromise ??= import(
-    "../bindings/hybrid-infra/go/services/uiservice.js"
-  ).catch((error) => {
+  (servicePromise ??= import("../bindings/hybrid-infra/go/services/uiservice.js").catch((error) => {
     servicePromise = undefined;
     throw error;
   }));
@@ -111,12 +105,8 @@ function preview(title, body, { confirm = false, timeout = 0 } = {}) {
     if (timeout) timer = setTimeout(() => dialog.close("1"), timeout);
   });
 }
-document
-  .getElementById("preview-ok")
-  .addEventListener("click", () => dialog.close("1"));
-document
-  .getElementById("preview-cancel")
-  .addEventListener("click", () => dialog.close("0"));
+document.getElementById("preview-ok").addEventListener("click", () => dialog.close("1"));
+document.getElementById("preview-cancel").addEventListener("click", () => dialog.close("0"));
 // 按 Escape 时使用浏览器 dialog 的取消行为，并把本次预览结果设为取消。
 dialog.addEventListener("cancel", () => {
   dialog.returnValue = "0";
@@ -149,12 +139,7 @@ action("alert", "消息提示", async (place) => {
   if (isDesktop)
     await (
       await services()
-    ).Alert(
-      "操作成功",
-      "这是一条来自 Hybrid 的消息，2 秒后自动关闭。",
-      2,
-      place,
-    );
+    ).Alert("操作成功", "这是一条来自 Hybrid 的消息，2 秒后自动关闭。", 2, place);
   else
     await preview("操作成功", "这是一条来自 Hybrid 的消息，2 秒后自动关闭。", {
       timeout: 2000,

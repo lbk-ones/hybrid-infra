@@ -22,7 +22,9 @@ export function normalizeError(error) {
       // Wails 可能把宿主 JSON 错误包在 HTTP 错误文本中，因此也检查文本中的错误码。
       const code = text.match(/\bE_[A-Z_]+\b/);
       if (code) {
-        const message = text.startsWith(`${code[0]}:`) ? text.slice(code[0].length + 1).trim() : text;
+        const message = text.startsWith(`${code[0]}:`)
+          ? text.slice(code[0].length + 1).trim()
+          : text;
         return new HybridError(code[0], message, error);
       }
     }
@@ -39,12 +41,9 @@ export function normalizeError(error) {
  */
 export function call(operation, { timeoutMs = 30000, signal } = {}) {
   if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
-    return Promise.reject(
-      new HybridError("E_INVALID_ARGUMENT", "timeoutMs 必须为正数"),
-    );
+    return Promise.reject(new HybridError("E_INVALID_ARGUMENT", "timeoutMs 必须为正数"));
   }
-  if (signal?.aborted)
-    return Promise.reject(new HybridError("E_CANCELLED", "操作已取消"));
+  if (signal?.aborted) return Promise.reject(new HybridError("E_CANCELLED", "操作已取消"));
   return new Promise((resolve, reject) => {
     let pending;
     let timer;
@@ -91,10 +90,7 @@ export function createClient(Host) {
     connection ??= call(() => Host.GetInfo(), { timeoutMs })
       .then((info) => {
         if (info?.protocolVersion !== 1)
-          throw new HybridError(
-            "E_PROTOCOL_MISMATCH",
-            "宿主与 SDK 协议版本不兼容",
-          );
+          throw new HybridError("E_PROTOCOL_MISMATCH", "宿主与 SDK 协议版本不兼容");
         if (!Array.isArray(info.capabilities))
           throw new HybridError("E_PROTOCOL_MISMATCH", "宿主能力信息无效");
         return info;
@@ -104,14 +100,9 @@ export function createClient(Host) {
         throw normalizeError(error);
       });
     const info = await connection;
-    const missing = requiredCapabilities.filter(
-      (name) => !info.capabilities.includes(name),
-    );
+    const missing = requiredCapabilities.filter((name) => !info.capabilities.includes(name));
     if (missing.length)
-      throw new HybridError(
-        "E_CAPABILITY_UNAVAILABLE",
-        `宿主未授权能力：${missing.join(", ")}`,
-      );
+      throw new HybridError("E_CAPABILITY_UNAVAILABLE", `宿主未授权能力：${missing.join(", ")}`);
     return { ...info, capabilities: [...info.capabilities] };
   }
   /**

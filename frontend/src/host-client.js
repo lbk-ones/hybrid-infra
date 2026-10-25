@@ -17,4 +17,7 @@ export const Hybrid = createClient(Host);
 export const Events = createEvents(EventService, Hybrid.call);
 export const Shell = createShell(ShellService, Hybrid.call);
 export const UI = createUI(UIBindings);
-if (typeof window !== "undefined") window.addEventListener("pagehide", () => { void Events.close().catch(() => {}); });
+if (typeof window !== "undefined")
+  window.addEventListener("pagehide", () => {
+    void Events.close().catch(() => {});
+  });

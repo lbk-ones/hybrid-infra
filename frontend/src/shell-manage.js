@@ -112,9 +112,7 @@ async function refresh() {
     taskList.append(row);
   }
 }
-document
-  .getElementById("refresh")
-  .addEventListener("click", () => run(refresh));
+document.getElementById("refresh").addEventListener("click", () => run(refresh));
 document.getElementById("open-window").addEventListener("click", () =>
   run(async () => {
     await Hybrid.call(() =>
@@ -152,9 +150,7 @@ run(async () => {
     `v${info.protocolVersion} / ${info.platform}`;
   document.getElementById("host-close").textContent =
     info.closeBehavior === "hide" ? "隐藏到托盘" : "退出应用";
-  document.getElementById("host-single").textContent = info.singleInstance
-    ? "已启用"
-    : "已关闭";
+  document.getElementById("host-single").textContent = info.singleInstance ? "已启用" : "已关闭";
   document.getElementById("connection-state").textContent = "宿主已连接";
   const capabilities = document.getElementById("capabilities");
   for (const name of info.capabilities) {

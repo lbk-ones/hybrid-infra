@@ -35,12 +35,8 @@
         if (event) window.wails.Events.Emit(event, value);
         else window.wails.Window.Close();
       }
-      document
-        .getElementById("confirm-confirm")
-        .addEventListener("click", () => answer("1"));
-      document
-        .getElementById("confirm-cancel")
-        .addEventListener("click", () => answer("0"));
+      document.getElementById("confirm-confirm").addEventListener("click", () => answer("1"));
+      document.getElementById("confirm-cancel").addEventListener("click", () => answer("0"));
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") answer("0");
       });

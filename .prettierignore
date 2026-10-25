@@ -1,0 +1,15 @@
+**/node_modules/
+frontend/dist/
+frontend/bindings/
+frontend/.bindings-tmp-*/
+hybrid/
+build/*
+!build/Taskfile.yml
+!build/config.yml
+!build/windows/
+build/windows/*
+!build/windows/Taskfile.yml
+bin/
+.task/
+settings.json
+store.json

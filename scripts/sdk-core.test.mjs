@@ -1,11 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  call,
-  createClient,
-  HybridError,
-  normalizeError,
-} from "../frontend/src/sdk-core.js";
+import { call, createClient, HybridError, normalizeError } from "../frontend/src/sdk-core.js";
 
 test("handshake checks protocol and capabilities, retries after failure", async () => {
   let attempts = 0;
@@ -108,10 +103,7 @@ test("task registration is released on success, failure, and caller cancellation
 });
 
 test("structured host errors and HTTP permission errors keep their error codes", () => {
-  assert.equal(
-    normalizeError({ cause: { code: "E_BUSY", message: "unfinished" } }).code,
-    "E_BUSY",
-  );
+  assert.equal(normalizeError({ cause: { code: "E_BUSY", message: "unfinished" } }).code, "E_BUSY");
   assert.equal(
     normalizeError(new Error('HTTP 403: {"code":"E_PERMISSION_DENIED"}')).code,
     "E_PERMISSION_DENIED",

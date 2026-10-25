@@ -1,5 +1,91 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>区域截图 · Hybrid</title><link rel="stylesheet" href="/shell.css"/><link rel="stylesheet" href="/desktop.css"/></head>
-<body class="manage-page"><header class="manage-header"><div><p class="eyebrow">HYBRID / SCREEN CAPTURE</p><h1>区域截图</h1><p>明确的物理像素坐标，或直接拖动鼠标选择。</p></div><nav><a href="/shell/ui.html">通知与弹窗</a><a href="/shell/desktop.html">桌面能力</a><a href="/">工作台 ↗</a></nav></header>
-<main class="manage-main desktop-main"><div id="capture-notice" class="desktop-wide" role="status" aria-live="polite">正在连接…</div><aside class="desktop-guide"><strong>坐标使用虚拟桌面物理像素，支持负坐标</strong><p>手动模式会冻结选定显示器，松开鼠标完成框选；Escape 或右键取消。截图不自动保存到磁盘，写剪贴板另需 clipboard 权限。</p></aside>
-<section class="manage-panel"><div class="panel-heading"><h2>截图区域</h2><span id="capture-capability">检查权限…</span></div><label>框选显示器<select id="capture-display"></select></label><output id="display-info"></output><div class="preference-grid"><label>起点 X<input id="capture-x" type="number" value="0"/></label><label>起点 Y<input id="capture-y" type="number" value="0"/></label><label>宽度（物理像素）<input id="capture-width" type="number" value="400" min="1"/></label><label>高度（物理像素）<input id="capture-height" type="number" value="240" min="1"/></label></div><label>输出<select id="capture-output"><option value="base64">返回 PNG Base64</option><option value="clipboard">仅写入剪贴板</option><option value="both">Base64 + 剪贴板</option></select></label><div class="actions"><button id="capture-region-button" disabled>按坐标截图</button><button id="capture-select-button" disabled>手动框选</button></div><p class="panel-description">坐标模式可跨相邻显示器；手动框选限定于选中的显示器。单次最多 1600 万像素、PNG 最多 20 MiB。</p></section>
-<section class="manage-panel"><div class="panel-heading"><h2>截图结果</h2><span id="capture-result-size">尚未截图</span></div><img id="capture-preview" hidden alt="本次截图预览" style="max-width:100%;max-height:340px;object-fit:contain;border:1px solid #e0e9e3;border-radius:8px"/><label>Base64（只读）<textarea id="capture-base64" rows="6" readonly placeholder="只有选择 Base64 输出时才返回；不写入操作日志"></textarea></label><output id="capture-result-info"></output></section></main><script type="module" src="/src/shell-capture.js"></script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>区域截图 · Hybrid</title>
+    <link rel="stylesheet" href="/shell.css" />
+    <link rel="stylesheet" href="/desktop.css" />
+  </head>
+  <body class="manage-page">
+    <header class="manage-header">
+      <div>
+        <p class="eyebrow">HYBRID / SCREEN CAPTURE</p>
+        <h1>区域截图</h1>
+        <p>明确的物理像素坐标，或直接拖动鼠标选择。</p>
+      </div>
+      <nav>
+        <a href="/shell/ui.html">通知与弹窗</a><a href="/shell/desktop.html">桌面能力</a
+        ><a href="/">工作台 ↗</a>
+      </nav>
+    </header>
+    <main class="manage-main desktop-main">
+      <div id="capture-notice" class="desktop-wide" role="status" aria-live="polite">正在连接…</div>
+      <aside class="desktop-guide">
+        <strong>坐标使用虚拟桌面物理像素，支持负坐标</strong>
+        <p>
+          手动模式会冻结选定显示器，松开鼠标完成框选；Escape
+          或右键取消。截图不自动保存到磁盘，写剪贴板另需 clipboard 权限。
+        </p>
+      </aside>
+      <section class="manage-panel">
+        <div class="panel-heading">
+          <h2>截图区域</h2>
+          <span id="capture-capability">检查权限…</span>
+        </div>
+        <label>框选显示器<select id="capture-display"></select></label
+        ><output id="display-info"></output>
+        <div class="preference-grid">
+          <label>起点 X<input id="capture-x" type="number" value="0" /></label
+          ><label>起点 Y<input id="capture-y" type="number" value="0" /></label
+          ><label
+            >宽度（物理像素）<input id="capture-width" type="number" value="400" min="1" /></label
+          ><label
+            >高度（物理像素）<input id="capture-height" type="number" value="240" min="1"
+          /></label>
+        </div>
+        <label
+          >输出<select id="capture-output">
+            <option value="base64">返回 PNG Base64</option>
+            <option value="clipboard">仅写入剪贴板</option>
+            <option value="both">Base64 + 剪贴板</option>
+          </select></label
+        >
+        <div class="actions">
+          <button id="capture-region-button" disabled>按坐标截图</button
+          ><button id="capture-select-button" disabled>手动框选</button>
+        </div>
+        <p class="panel-description">
+          坐标模式可跨相邻显示器；手动框选限定于选中的显示器。单次最多 1600 万像素、PNG 最多 20
+          MiB。
+        </p>
+      </section>
+      <section class="manage-panel">
+        <div class="panel-heading">
+          <h2>截图结果</h2>
+          <span id="capture-result-size">尚未截图</span>
+        </div>
+        <img
+          id="capture-preview"
+          hidden
+          alt="本次截图预览"
+          style="
+            max-width: 100%;
+            max-height: 340px;
+            object-fit: contain;
+            border: 1px solid #e0e9e3;
+            border-radius: 8px;
+          "
+        /><label
+          >Base64（只读）<textarea
+            id="capture-base64"
+            rows="6"
+            readonly
+            placeholder="只有选择 Base64 输出时才返回；不写入操作日志"
+          ></textarea></label
+        ><output id="capture-result-info"></output>
+      </section>
+    </main>
+    <script type="module" src="/src/shell-capture.js"></script>
+  </body>
+</html>
