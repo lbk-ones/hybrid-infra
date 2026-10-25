@@ -155,7 +155,7 @@ func (s *DesktopService) SetShortcut(ctx context.Context, key, route string, glo
 	return s.desktop.SetShortcut(ctx, key, route, global, enable)
 }
 
-// ConfigureProtocol 显式注册或移除固定 hybrid-infra 协议，不在应用启动时自动注册。
+// ConfigureProtocol 显式注册或移除当前应用身份对应的协议，默认身份保留 hybrid-infra，不在启动时自动注册。
 func (s *DesktopService) ConfigureProtocol(ctx context.Context, enable bool) error {
 	if err := host.Require(ctx, "protocol"); err != nil {
 		return err

@@ -16,6 +16,6 @@ func nativeCredential(target string, value []byte, operation string) ([]byte, er
 }
 
 // registerProtocol 提示非 Windows 平台需由安装包声明协议入口。
-func registerProtocol(enable bool) error {
+func registerProtocol(appID, scheme string, enable bool) error {
 	return Fail("E_UNSUPPORTED", "此平台请通过安装包声明协议入口")
 }

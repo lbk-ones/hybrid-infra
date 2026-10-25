@@ -21,6 +21,7 @@ type updateTicket struct {
 	Parent     int
 	Target     string
 	DataDir    string
+	AppID      string
 	Settings   string
 	OldVersion string
 	NewVersion string
@@ -128,9 +129,13 @@ func (m *Maintenance) InstallUpdate(rollback bool) error {
 	_ = probe.Close()
 	_ = os.Remove(probe.Name())
 	ticket := updateTicket{ID: maintenanceID(), Parent: os.Getpid(), Target: target, DataDir: m.dir, OldVersion: Version, Rollback: rollback}
-	ticket.Settings, e = setting.ConfigPath()
-	if e != nil {
-		return e
+	ticket.AppID = m.controller.config.Identity()
+	ticket.Settings, _ = m.controller.config.ConfigLocation()
+	if ticket.Settings == "" {
+		candidate := filepath.Join(m.dir, "settings.json")
+		if _, err := os.Stat(candidate); err == nil {
+			ticket.Settings = candidate
+		}
 	}
 	if rollback {
 		var record rollbackRecord
@@ -376,6 +381,9 @@ func startUpdatedApp(ticket updateTicket, health, token string) (*exec.Cmd, erro
 		command.Env = append(command.Env, item)
 	}
 	command.Env = append(command.Env, "HYBRID_DATA_DIR="+ticket.DataDir)
+	if ticket.AppID != "" {
+		command.Env = append(command.Env, "HYBRID_APP_ID="+ticket.AppID)
+	}
 	if ticket.Settings != "" {
 		command.Env = append(command.Env, "HYBRID_SETTINGS="+ticket.Settings)
 	}

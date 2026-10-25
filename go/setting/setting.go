@@ -3,7 +3,6 @@ package setting
 import (
 	"crypto/ed25519"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -57,6 +56,9 @@ type UpdateConfig struct {
 	AutoDownload   bool   `json:"autoDownload"`
 }
 type PkgInfo struct {
+	AppID               string `json:"appId"` // 发布时确定的应用身份；默认 hybrid-infra 保留旧数据目录，自定义 ID 使用独立数据目录与协议。
+	sourcePath          string
+	sourceKind          string
 	SplashEnabled       bool                `json:"splashEnabled"` // 是否显示独立启动屏；默认开启，关闭后静默引导并直接显示主窗口。
 	Icons               IconConfig          `json:"icons"`
 	Updates             UpdateConfig        `json:"updates"`
@@ -87,73 +89,56 @@ type PkgInfo struct {
 // New 创建配置读取器；实际读取、默认值填充和校验由 Parse 执行。
 func New() *Setting { return &Setting{} }
 
-// DataDir 确定与启动工作目录无关的用户数据目录；优先使用 HYBRID_DATA_DIR，否则使用系统配置目录下的 hybrid-infra。
-func DataDir() (string, error) {
+// DataDir 返回指定应用的独立数据目录；不传身份时从启动配置解析，HYBRID_DATA_DIR 是明确的目录覆盖，不自动附加身份。
+func DataDir(ids ...string) (string, error) {
 	if dir := os.Getenv("HYBRID_DATA_DIR"); dir != "" {
 		return filepath.Abs(dir)
 	}
-	dir, err := os.UserConfigDir()
+	id := DefaultAppID
+	var err error
+	if len(ids) > 0 {
+		id = ids[0]
+	} else {
+		id, err = ApplicationID()
+	}
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(dir, "hybrid-infra"), nil
+	return appDataDir(id)
 }
 
 // ConfigPath 按环境变量、用户数据目录、程序目录和开发仓库的顺序查找配置文件；未显式指定且均未找到时返回空路径。
 func ConfigPath() (string, error) {
-	if path := os.Getenv("HYBRID_SETTINGS"); path != "" {
-		return filepath.Abs(path)
-	}
-	dir, err := DataDir()
-	if err != nil {
-		return "", err
-	}
-	candidates := []string{filepath.Join(dir, "settings.json")}
-	exe, err := os.Executable()
-	if err != nil {
-		return "", err
-	}
-	candidates = append(candidates, filepath.Join(filepath.Dir(exe), "settings.json"))
-	if cwd, err := os.Getwd(); err == nil {
-		if _, err := os.Stat(filepath.Join(cwd, "go.mod")); err == nil {
-			candidates = append(candidates, filepath.Join(cwd, "settings.json"))
-		}
-	}
-	for _, path := range candidates {
-		if _, err := os.Stat(path); err == nil {
-			return path, nil
-		} else if !errors.Is(err, os.ErrNotExist) {
-			return "", err
-		}
-	}
-	return "", nil
+	path, _, err := configLocation()
+	return path, err
 }
 
 // Parse 填充默认配置后读取选中的 JSON 文件并校验；没有配置文件时使用默认值，显式配置错误时返回错误。
 func (*Setting) Parse() (*PkgInfo, error) {
-	config := &PkgInfo{SplashEnabled: true, Title: "Hybrid App", Url: "/", SingleInstance: true, CloseBehavior: "exit", RememberWindows: true, MinWidth: 800, MinHeight: 600, LoadTimeoutSeconds: 30, ExternalLinks: "browser"}
-	path, err := ConfigPath()
+	id, err := ApplicationID()
 	if err != nil {
 		return nil, err
 	}
-	if path == "" {
-		return config, nil
-	}
-	data, err := os.ReadFile(path)
+	path, source, err := configLocation()
 	if err != nil {
-		return nil, fmt.Errorf("read settings %s: %w", path, err)
+		return nil, err
 	}
-	if err := json.Unmarshal(data, config); err != nil {
-		return nil, fmt.Errorf("parse settings %s: %w", path, err)
+	config, err := ReadConfig(path, id)
+	if err != nil {
+		return nil, err
 	}
-	if err := config.validate(); err != nil {
-		return nil, fmt.Errorf("settings %s: %w", path, err)
-	}
+	config.sourcePath, config.sourceKind = path, source
 	return config, nil
 }
 
 // validate 检查窗口尺寸、关闭方式、加载超时、导航地址和能力名称等配置，拒绝无法识别或不安全的取值。
 func (p *PkgInfo) validate() error {
+	if p.AppID == "" {
+		p.AppID = DefaultAppID
+	}
+	if !appIDPattern.MatchString(p.AppID) {
+		return errors.New("appId must be 1-48 lowercase letters, digits or hyphens, starting with a letter")
+	}
 	if err := p.Icons.Validate(); err != nil {
 		return err
 	}

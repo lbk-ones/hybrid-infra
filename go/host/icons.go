@@ -183,15 +183,9 @@ func (m *IconManager) Reload(ctx context.Context, config setting.IconConfig) err
 
 // reload 在持有操作锁时加载并应用图标，使启动加载和用户重载按顺序执行，不会互相覆盖。
 func (m *IconManager) reload(ctx context.Context, config setting.IconConfig) error {
-	path, err := setting.ConfigPath()
-	if err != nil {
-		return Fail("E_SETTINGS", "无法确定图标配置目录")
-	}
+	path, _ := m.controller.config.ConfigLocation()
 	if path == "" {
-		path, err = os.Executable()
-		if err != nil {
-			return Fail("E_SETTINGS", "无法确定程序目录")
-		}
+		path = filepath.Join(m.controller.dataDir, "settings.json")
 	}
 	pair, err := loadIconPair(ctx, config, filepath.Dir(path), m.defaults)
 	if err != nil {

@@ -3,6 +3,7 @@ frontend/dist/
 frontend/bindings/
 frontend/.bindings-tmp-*/
 hybrid/
+examples/local-page/native/
 build/*
 !build/Taskfile.yml
 !build/config.yml

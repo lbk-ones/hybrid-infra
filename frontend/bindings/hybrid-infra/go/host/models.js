@@ -1023,6 +1023,48 @@ export class SettingsSnapshot {
              */
             this["restartRequired"] = false;
         }
+        if (!("configPath" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["configPath"] = "";
+        }
+        if (!("configSource" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["configSource"] = "";
+        }
+        if (!("dataDir" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["dataDir"] = "";
+        }
+        if (!("appId" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["appId"] = "";
+        }
+        if (!("protocolScheme" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["protocolScheme"] = "";
+        }
+        if (!("pendingFields" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["pendingFields"] = [];
+        }
 
         Object.assign(this, $$source);
     }
@@ -1036,6 +1078,7 @@ export class SettingsSnapshot {
         const $$createField0_0 = $$createType7;
         const $$createField1_0 = $$createType7;
         const $$createField2_0 = $$createType8;
+        const $$createField9_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("active" in $$parsedSource) {
             $$parsedSource["active"] = $$createField0_0($$parsedSource["active"]);
@@ -1045,6 +1088,9 @@ export class SettingsSnapshot {
         }
         if ("preferences" in $$parsedSource) {
             $$parsedSource["preferences"] = $$createField2_0($$parsedSource["preferences"]);
+        }
+        if ("pendingFields" in $$parsedSource) {
+            $$parsedSource["pendingFields"] = $$createField9_0($$parsedSource["pendingFields"]);
         }
         return new SettingsSnapshot(/** @type {Partial<SettingsSnapshot>} */($$parsedSource));
     }

@@ -6,10 +6,12 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"image"
 	"image/png"
 	"net/url"
+	"os"
 	"path/filepath"
 	"reflect"
 	"regexp"
@@ -154,6 +156,50 @@ type SettingsSnapshot struct {
 	Saved           *setting.PkgInfo `json:"saved"`
 	Preferences     Preferences      `json:"preferences"`
 	RestartRequired bool             `json:"restartRequired"`
+	ConfigPath      string           `json:"configPath"`
+	ConfigSource    string           `json:"configSource"`
+	DataDir         string           `json:"dataDir"`
+	AppID           string           `json:"appId"`
+	ProtocolScheme  string           `json:"protocolScheme"`
+	PendingFields   []string         `json:"pendingFields"`
+}
+
+// settingsPath 固定使用本次启动选中的配置文件，默认启动首次保存到当前应用目录，不因其他文件出现而切换。
+func (d *Desktop) settingsPath() (string, string) {
+	path, source := d.Controller.config.ConfigLocation()
+	if path == "" {
+		path, source = filepath.Join(d.dir, "settings.json"), "user"
+	}
+	return path, source
+}
+
+// readSavedSettings 读取固定路径中的当前应用配置；默认启动尚未保存文件时返回默认配置，显式配置删除则报错。
+func (d *Desktop) readSavedSettings() (*setting.PkgInfo, error) {
+	path, _ := d.settingsPath()
+	original, _ := d.Controller.config.ConfigLocation()
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) && original == "" {
+		return setting.ReadConfig("", d.Controller.config.Identity())
+	}
+	return setting.ReadConfig(path, d.Controller.config.Identity())
+}
+
+// sameSettingField 将空数组/空映射与 nil 视为同一配置，避免 Wails 模型序列化后把未修改字段误报为待重启。
+func sameSettingField(a, b reflect.Value) bool {
+	if !a.IsValid() || !b.IsValid() {
+		return a.IsValid() == b.IsValid()
+	}
+	if a.Kind() == b.Kind() && (a.Kind() == reflect.Slice || a.Kind() == reflect.Map) && a.Len() == 0 && b.Len() == 0 {
+		return true
+	}
+	if a.Kind() == reflect.Map && b.Kind() == reflect.Map && a.Len() == b.Len() {
+		for _, key := range a.MapKeys() {
+			if !sameSettingField(a.MapIndex(key), b.MapIndex(key)) {
+				return false
+			}
+		}
+		return true
+	}
+	return reflect.DeepEqual(a.Interface(), b.Interface())
 }
 
 // GetSettings 读取已保存配置并与生效快照比较；图标使用最近成功重载的配置，窗口和安全来源仍使用启动快照。
@@ -161,14 +207,24 @@ func (d *Desktop) GetSettings() (SettingsSnapshot, error) {
 	data, _ := json.Marshal(d.Controller.config)
 	var active setting.PkgInfo
 	_ = json.Unmarshal(data, &active)
+	active.AppID = d.Controller.config.Identity()
 	if d.Controller.icons != nil {
 		active.Icons = d.Controller.icons.ActiveConfig()
 	}
-	saved, err := setting.New().Parse()
+	saved, err := d.readSavedSettings()
 	if err != nil {
 		return SettingsSnapshot{}, Fail("E_SETTINGS", "磁盘配置无法读取或校验失败")
 	}
-	return SettingsSnapshot{Active: &active, Saved: saved, Preferences: d.GetPreferences(), RestartRequired: !reflect.DeepEqual(active, *saved)}, nil
+	fields := []string{}
+	activeValue, savedValue := reflect.ValueOf(active), reflect.ValueOf(*saved)
+	for index := 0; index < activeValue.NumField(); index++ {
+		name := activeValue.Type().Field(index).Tag.Get("json")
+		if name != "" && name != "-" && !sameSettingField(activeValue.Field(index), savedValue.Field(index)) {
+			fields = append(fields, name)
+		}
+	}
+	path, source := d.settingsPath()
+	return SettingsSnapshot{Active: &active, Saved: saved, Preferences: d.GetPreferences(), RestartRequired: len(fields) > 0, ConfigPath: path, ConfigSource: source, DataDir: d.dir, AppID: d.Controller.config.Identity(), ProtocolScheme: d.Controller.config.ProtocolScheme(), PendingFields: fields}, nil
 }
 
 // ReloadIcons 读取固定配置文件中的图标设置并立即替换；地址加载失败保留现有图标，不更改来源权限。
@@ -176,7 +232,7 @@ func (d *Desktop) ReloadIcons(ctx context.Context) (SettingsSnapshot, error) {
 	if d.Controller.icons == nil {
 		return SettingsSnapshot{}, Fail("E_UNSUPPORTED", "当前宿主尚未安装图标管理器")
 	}
-	config, err := setting.New().Parse()
+	config, err := d.readSavedSettings()
 	if err != nil {
 		return SettingsSnapshot{}, Fail("E_SETTINGS", "图标配置无法读取或校验失败")
 	}
@@ -191,13 +247,10 @@ func (d *Desktop) SaveSettings(config setting.PkgInfo) (SettingsSnapshot, error)
 	if err := config.Validate(); err != nil {
 		return SettingsSnapshot{}, Fail("E_INVALID_ARGUMENT", err.Error())
 	}
-	path, err := setting.ConfigPath()
-	if err != nil {
-		return SettingsSnapshot{}, Fail("E_SETTINGS", "无法确定配置文件")
+	if config.Identity() != d.Controller.config.Identity() {
+		return SettingsSnapshot{}, Fail("E_INVALID_ARGUMENT", "应用身份不能在运行中修改；请在部署配置设置 appId，并使用独立数据目录启动")
 	}
-	if path == "" {
-		path = filepath.Join(d.dir, "settings.json")
-	}
+	path, _ := d.settingsPath()
 	data, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
 		return SettingsSnapshot{}, err
@@ -266,11 +319,11 @@ func (c *Controller) ActivateRoute(route string) error {
 	return c.Retry("main-window", false)
 }
 
-// HandleActivation 从系统启动参数中提取固定协议入口；仅支持 hybrid-infra://open?route=，不接受页面提供可执行命令。
+// HandleActivation 仅接收当前应用身份派生的协议入口，不接收其他业务应用的路由或可执行命令。
 func (c *Controller) HandleActivation(args []string) {
 	for _, arg := range args {
 		u, err := url.Parse(arg)
-		if err != nil || u.Scheme != "hybrid-infra" || u.Host != "open" || u.User != nil || u.Path != "" || u.Fragment != "" {
+		if err != nil || u.Scheme != c.config.ProtocolScheme() || u.Host != "open" || u.User != nil || u.Path != "" || u.Fragment != "" {
 			continue
 		}
 		if err = c.ActivateRoute(u.Query().Get("route")); err != nil && c.app != nil {
@@ -395,4 +448,6 @@ func (d *Desktop) sendNotification(title, body, route string) error {
 }
 
 // ConfigureProtocol 显式注册或移除当前用户级的固定应用协议；不会在启动时自动修改系统注册表。
-func (d *Desktop) ConfigureProtocol(enable bool) error { return registerProtocol(enable) }
+func (d *Desktop) ConfigureProtocol(enable bool) error {
+	return registerProtocol(d.Controller.config.Identity(), d.Controller.config.ProtocolScheme(), enable)
+}

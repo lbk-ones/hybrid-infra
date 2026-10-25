@@ -67,6 +67,7 @@ type Task struct {
 type Controller struct {
 	app               *application.App
 	config            *setting.PkgInfo
+	dataDir           string
 	Policy            *Policy
 	store             *stateStore
 	mu                sync.RWMutex // 保护窗口登记、加载状态和任务列表，不应在持锁时调用原生窗口接口。
@@ -88,8 +89,11 @@ type Controller struct {
 
 // New 创建宿主管理器，读取已有窗口状态，并初始化窗口、任务和权限登记表。此时尚未绑定 Wails 应用。
 func New(config *setting.PkgInfo, dir string) *Controller {
-	return &Controller{config: config, Policy: NewPolicy(config), store: newStateStore(dir), windows: map[string]*entry{}, tasks: map[string]Task{}}
+	return &Controller{config: config, dataDir: dir, Policy: NewPolicy(config), store: newStateStore(dir), windows: map[string]*entry{}, tasks: map[string]Task{}}
 }
+
+// DataDirectory 返回启动时固定的数据目录，服务注册和运行中的设置读写不重新解析部署身份。
+func (c *Controller) DataDirectory() string { return c.dataDir }
 
 // Attach 绑定 Wails 应用，监听启动、显示器变化和系统唤醒事件；应用退出时停止加载计时器并保存窗口状态。
 func (c *Controller) Attach(app *application.App) {
@@ -815,6 +819,11 @@ func (c *Controller) InstallTray(icon []byte) {
 	})
 	menu.AddSeparator()
 	menu.Add("显示主窗口").OnClick(func(*application.Context) { c.WakeMain() })
+	menu.Add("配置中心").OnClick(func(*application.Context) {
+		if _, err := c.Open(utils.NewWindowOptions{Name: "settings-console", Title: "配置中心", Url: "/shell/settings.html", Width: 1120, Height: 900}); err != nil {
+			c.app.Logger.Warn("open settings center", "code", "E_SETTINGS_OPEN")
+		}
+	})
 	menu.Add("宿主管理").OnClick(func(*application.Context) {
 		_, err := c.Open(utils.NewWindowOptions{Name: "host-console", Title: "宿主管理", Url: "/shell/manage.html", Width: 1100, Height: 800})
 		if err != nil {
@@ -856,7 +865,7 @@ func (c *Controller) UpdateTrayStatus() {
 
 // HostInfo 返回 SDK 握手所需的版本、协议、平台、关闭行为及当前调用者真正获准使用的能力。
 func (c *Controller) HostInfo(ctx context.Context) map[string]any {
-	return map[string]any{"name": "hybrid-infra", "version": Version, "protocolVersion": ProtocolVersion, "wailsVersion": "v3.0.0-beta.33", "platform": runtime.GOOS, "capabilities": CallerCapabilities(ctx), "closeBehavior": c.config.CloseBehavior, "singleInstance": c.config.SingleInstance, "maxPayloadBytes": 1024 * 1024}
+	return map[string]any{"name": c.config.Identity(), "appId": c.config.Identity(), "protocolScheme": c.config.ProtocolScheme(), "version": Version, "protocolVersion": ProtocolVersion, "wailsVersion": "v3.0.0-beta.33", "platform": runtime.GOOS, "capabilities": CallerCapabilities(ctx), "closeBehavior": c.config.CloseBehavior, "singleInstance": c.config.SingleInstance, "maxPayloadBytes": 1024 * 1024}
 }
 
 // NativeMessage 处理页面就绪和导航消息，使用原生提供的来源元数据核对页面身份，再执行导航分流或更新加载状态。

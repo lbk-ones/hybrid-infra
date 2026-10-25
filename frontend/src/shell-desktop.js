@@ -406,6 +406,8 @@ bind(
 /** 建立真实宿主连接、显示能力授权并读取初始状态；不在普通浏览器中展示模拟成功数据。 */
 async function initialize() {
   const info = await Hybrid.connect();
+  $("protocol-example").textContent =
+    `${info.protocolScheme || "hybrid-infra"}://open?route=%2F%23workspace`;
   capabilities = new Set(info.capabilities);
   $("capabilities").replaceChildren();
   for (const cap of capabilities) {

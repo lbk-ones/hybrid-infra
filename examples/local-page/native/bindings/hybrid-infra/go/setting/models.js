@@ -50,6 +50,14 @@ export class PkgInfo {
      * @param {Partial<PkgInfo>} [$$source = {}] - The source object to create the PkgInfo.
      */
     constructor($$source = {}) {
+        if (!("appId" in $$source)) {
+            /**
+             * 发布时确定的应用身份；默认 hybrid-infra 保留旧数据目录，自定义 ID 使用独立数据目录与协议。
+             * @member
+             * @type {string}
+             */
+            this["appId"] = "";
+        }
         if (!("splashEnabled" in $$source)) {
             /**
              * 是否显示独立启动屏；默认开启，关闭后静默引导并直接显示主窗口。
@@ -245,34 +253,34 @@ export class PkgInfo {
      * @returns {PkgInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField1_0 = $$createType0;
-        const $$createField2_0 = $$createType1;
-        const $$createField3_0 = $$createType2;
-        const $$createField13_0 = $$createType2;
-        const $$createField21_0 = $$createType2;
-        const $$createField23_0 = $$createType3;
-        const $$createField24_0 = $$createType2;
+        const $$createField2_0 = $$createType0;
+        const $$createField3_0 = $$createType1;
+        const $$createField4_0 = $$createType2;
+        const $$createField14_0 = $$createType2;
+        const $$createField22_0 = $$createType2;
+        const $$createField24_0 = $$createType3;
+        const $$createField25_0 = $$createType2;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("icons" in $$parsedSource) {
-            $$parsedSource["icons"] = $$createField1_0($$parsedSource["icons"]);
+            $$parsedSource["icons"] = $$createField2_0($$parsedSource["icons"]);
         }
         if ("updates" in $$parsedSource) {
-            $$parsedSource["updates"] = $$createField2_0($$parsedSource["updates"]);
+            $$parsedSource["updates"] = $$createField3_0($$parsedSource["updates"]);
         }
         if ("shellPrograms" in $$parsedSource) {
-            $$parsedSource["shellPrograms"] = $$createField3_0($$parsedSource["shellPrograms"]);
+            $$parsedSource["shellPrograms"] = $$createField4_0($$parsedSource["shellPrograms"]);
         }
         if ("allowedOrigins" in $$parsedSource) {
-            $$parsedSource["allowedOrigins"] = $$createField13_0($$parsedSource["allowedOrigins"]);
+            $$parsedSource["allowedOrigins"] = $$createField14_0($$parsedSource["allowedOrigins"]);
         }
         if ("navigationOrigins" in $$parsedSource) {
-            $$parsedSource["navigationOrigins"] = $$createField21_0($$parsedSource["navigationOrigins"]);
+            $$parsedSource["navigationOrigins"] = $$createField22_0($$parsedSource["navigationOrigins"]);
         }
         if ("permissions" in $$parsedSource) {
-            $$parsedSource["permissions"] = $$createField23_0($$parsedSource["permissions"]);
+            $$parsedSource["permissions"] = $$createField24_0($$parsedSource["permissions"]);
         }
         if ("desktopCapabilities" in $$parsedSource) {
-            $$parsedSource["desktopCapabilities"] = $$createField24_0($$parsedSource["desktopCapabilities"]);
+            $$parsedSource["desktopCapabilities"] = $$createField25_0($$parsedSource["desktopCapabilities"]);
         }
         return new PkgInfo(/** @type {Partial<PkgInfo>} */($$parsedSource));
     }

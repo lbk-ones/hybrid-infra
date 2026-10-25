@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>配置中心 · Hybrid</title>
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/shell.css" />
+    <link rel="stylesheet" href="/settings.css" />
+  </head>
+  <body class="settings-page">
+    <header class="settings-header">
+      <div>
+        <p class="eyebrow">APPLICATION SETTINGS</p>
+        <h1>配置中心</h1>
+        <p>选择页面来源、调整窗口和授权，保存后重启应用生效。</p>
+      </div>
+      <nav>
+        <a href="/shell/docs.html#application-settings">接入文档</a><a href="/">工作台 ↗</a>
+      </nav>
+    </header>
+    <main class="settings-main" tabindex="0" aria-label="配置内容">
+      <p id="settings-notice" class="settings-notice" role="status">正在读取当前应用配置…</p>
+      <section class="settings-panel">
+        <h2>正在使用的应用</h2>
+        <dl id="settings-location" class="settings-location"></dl>
+        <p class="settings-help">
+          appId 在发布配置或 HYBRID_APP_ID
+          中指定，不能在这里改名或迁移数据。未设置时沿用旧身份及原数据目录。
+        </p>
+      </section>
+      <form id="settings-form">
+        <fieldset id="settings-fields" disabled>
+          <section class="settings-panel">
+            <h2>页面与窗口</h2>
+            <div class="settings-grid">
+              <label>应用名称<input name="title" /></label>
+              <label
+                >页面来源<select name="pageMode">
+                  <option value="">自动识别（兼容旧配置）</option>
+                  <option value="builtin">builtin · EXE 内置页面</option>
+                  <option value="http">http · HTTP(S) 网站</option>
+                  <option value="local">local · 本地 HTML</option>
+                </select></label
+              >
+              <label
+                >页面地址<input
+                  name="url"
+                  placeholder="/index.html 或 https://app.example.com/"
+                /><small>本地 / 内置填 / 开头路径，网站填完整网址。</small></label
+              >
+              <label id="local-root-field"
+                >本地网页目录
+                <div class="settings-inline">
+                  <input name="localRoot" placeholder="web 或 . 或绝对目录" /><button
+                    id="choose-local-root"
+                    type="button"
+                  >
+                    选择目录
+                  </button>
+                </div>
+                <small
+                  >相对路径以 EXE 目录为基准；. 表示 EXE 同目录。选择目录需要 files
+                  权限，也可手动填写。</small
+                ></label
+              >
+              <label>宽度<input name="width" type="number" min="0" /></label
+              ><label
+                >高度<input name="height" type="number" min="0" /><small
+                  >宽高任一为 0 时按最大化启动。</small
+                ></label
+              >
+              <label>最小宽度<input name="minWidth" type="number" min="320" /></label
+              ><label>最小高度<input name="minHeight" type="number" min="240" /></label>
+              <label
+                >页面加载超时（秒）<input name="loadTimeoutSeconds" type="number" min="1" max="300"
+              /></label>
+              <label
+                >关闭主窗口<select name="closeBehavior">
+                  <option value="exit">退出应用</option>
+                  <option value="hide">隐藏到托盘</option>
+                </select></label
+              >
+              <label
+                >外部链接<select name="externalLinks">
+                  <option value="browser">交给系统浏览器</option>
+                  <option value="block">禁止打开</option>
+                </select></label
+              >
+            </div>
+            <div class="settings-checks">
+              <label><input name="splashEnabled" type="checkbox" />启用启动屏</label>
+              <label><input name="singleInstance" type="checkbox" />单实例运行</label>
+              <label><input name="trayEnabled" type="checkbox" />启用托盘</label>
+              <label><input name="rememberWindows" type="checkbox" />记住窗口位置</label>
+              <label><input name="frameless" type="checkbox" />无边框窗口</label>
+              <label><input name="debug" type="checkbox" />启用项目调试快捷键</label>
+            </div>
+          </section>
+          <section class="settings-panel">
+            <h2>内置 / 本地页面扩展权限</h2>
+            <p class="settings-help">
+              勾选内容写入
+              desktopCapabilities，是在基础权限上追加。需要限制或撤销基础权限时，请在下方为具体来源设置覆盖规则。跨来源能力需要同时勾选基础能力。
+            </p>
+            <div id="desktop-permissions" class="settings-permissions"></div>
+          </section>
+          <section class="settings-panel">
+            <div class="settings-row">
+              <h2>按来源覆盖权限</h2>
+              <button id="add-permission" type="button">新增来源</button>
+            </div>
+            <p class="settings-help">
+              每个来源的列表覆盖其默认权限；全部不选表示拒绝该来源的所有能力。保存前会检查来源格式。
+            </p>
+            <div id="origin-permissions"></div>
+          </section>
+          <section class="settings-panel">
+            <h2>来源、命令与图标</h2>
+            <div class="settings-grid">
+              <label
+                >额外可信来源<textarea
+                  name="allowedOrigins"
+                  rows="3"
+                  placeholder="每行一个 origin，例如 https://app.example.com"
+                ></textarea>
+              </label>
+              <label
+                >额外允许导航的来源<textarea
+                  name="navigationOrigins"
+                  rows="3"
+                  placeholder="只允许导航，不会自动新增调用权限"
+                ></textarea>
+              </label>
+              <label
+                >Shell 程序白名单<textarea
+                  name="shellPrograms"
+                  rows="3"
+                  placeholder="每行一个程序名称或路径，例如 go"
+                ></textarea
+                ><small>还需为调用页面授权 shell；这里只保存配置，不执行命令。</small></label
+              >
+              <div>
+                <label
+                  >应用图标<input
+                    name="iconApplication"
+                    placeholder="PNG 路径或 HTTPS 地址，留空使用内置图标" /></label
+                ><label>托盘图标<input name="iconTray" placeholder="留空跟随应用图标" /></label>
+              </div>
+            </div>
+          </section>
+          <section class="settings-panel">
+            <h2>保存前预览</h2>
+            <p id="settings-diff" class="settings-help"></p>
+            <details>
+              <summary>查看完整配置 JSON</summary>
+              <pre id="settings-preview"></pre>
+            </details>
+            <details>
+              <summary>高级 JSON 编辑</summary>
+              <p class="settings-help">
+                用于设置更新源等其他字段。编辑后点击应用到表单，再统一保存；不会修改应用身份。
+              </p>
+              <textarea id="settings-json" rows="12" spellcheck="false"></textarea
+              ><button id="apply-json" type="button">将 JSON 应用到表单</button>
+            </details>
+          </section>
+          <footer class="settings-save">
+            <span id="settings-restart"></span>
+            <div>
+              <button id="reload-settings" type="button">重新读取磁盘</button
+              ><button id="save-settings" class="primary" type="submit">
+                保存配置（重启生效）
+              </button>
+            </div>
+          </footer>
+        </fieldset>
+      </form>
+    </main>
+    <script type="module" src="/src/shell-settings.js"></script>
+  </body>
+</html>

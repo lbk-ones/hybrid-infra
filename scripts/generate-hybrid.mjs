@@ -110,6 +110,8 @@ try {
   const oldBindings = path.join(destination, "bindings");
   await rm(oldBindings, { recursive: true, force: true });
   await cp(bindings, oldBindings, { recursive: true });
+  // 同步仓库内完整本地演示的 SDK，避免示例仍携带旧模型；该目录同样是生成产物，不参与手写代码格式化。
+  await cp(output, path.join(root, "examples/local-page/native"), { recursive: true });
   console.log(
     `Exported hybrid for ${goVersion}. Copy the complete directory into your frontend's public assets.`,
   );

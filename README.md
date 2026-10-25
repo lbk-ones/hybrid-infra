@@ -52,6 +52,8 @@ console.log(answer); // "1" 或 "0"
 
 ## 配置与数据
 
+支持 `appId` 区分业务应用：默认 `hybrid-infra` 保留旧目录，自定义身份使用 `hybrid-infra/apps/<appId>`，并派生独立实例键与 `hybrid-<appId>://` 协议。身份从部署配置或 `HYBRID_APP_ID` 引导，用户配置不能更换身份。工作台和托盘的「配置中心」可编辑页面来源、窗口、权限、命令白名单等，并显示真实配置路径和待重启字段；需要 `settings` 授权。详见 [应用隔离与配置中心](docs/phase4-identity-settings.md)。
+
 参考 [settings.example.json](settings.example.json)。查找顺序：
 
 1. 环境变量 `HYBRID_SETTINGS` 指定的文件；不存在或无效时明确报错。

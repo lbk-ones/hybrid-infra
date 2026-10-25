@@ -6,17 +6,13 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/services/kvstore"
 	logService "github.com/wailsapp/wails/v3/pkg/services/log"
 	"hybrid-infra/go/host"
-	"hybrid-infra/go/setting"
 	"os"
 	"path/filepath"
 )
 
 // Register 创建应用数据目录，注册前端可调用的服务，并同步登记每个服务方法所需的能力，保证绑定与授权一致。
 func Register(app *application.App, controller *host.Controller, maintenance *host.Maintenance) error {
-	dir, err := setting.DataDir()
-	if err != nil {
-		return err
-	}
+	dir := controller.DataDirectory()
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return fmt.Errorf("create data directory: %w", err)
 	}

@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"syscall"
 	"unsafe"
 
@@ -168,8 +169,11 @@ type nativeCredentialRecord struct {
 	TargetAlias, UserName   *uint16
 }
 
-// registerProtocol 仅为固定 hybrid-infra 协议注册当前用户级入口；卸载时核对命令归属，避免删除其他安装的注册。
-func registerProtocol(enable bool) error {
+// registerProtocol 为当前应用身份派生的协议注册用户级入口；核对命令归属，避免覆盖或删除其他安装的注册。
+func registerProtocol(appID, scheme string, enable bool) error {
+	if !validID.MatchString(scheme) || strings.ToLower(scheme) != scheme {
+		return Fail("E_INVALID_ARGUMENT", "协议名称无效")
+	}
 	exe, err := os.Executable()
 	if err != nil {
 		return Fail("E_SYSTEM", "无法确定程序路径")
@@ -178,8 +182,11 @@ func registerProtocol(enable bool) error {
 	if err != nil {
 		return Fail("E_SYSTEM", "程序路径无效")
 	}
-	path := `Software\Classes\hybrid-infra`
+	path := `Software\Classes\` + scheme
 	command := `"` + exe + `" "%1"`
+	if appID != "hybrid-infra" {
+		command = `"` + exe + `" --hybrid-app-id=` + appID + ` "%1"`
+	}
 	if !enable {
 		key, e := registry.OpenKey(registry.CURRENT_USER, path+`\shell\open\command`, registry.QUERY_VALUE)
 		if e == registry.ErrNotExist {

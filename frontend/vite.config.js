@@ -8,6 +8,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
+        settings: fileURLToPath(new URL("./shell/settings.html", import.meta.url)),
         docs: fileURLToPath(new URL("./shell/docs.html", import.meta.url)),
         splash: fileURLToPath(new URL("./shell/splash.html", import.meta.url)),
         maintenance: fileURLToPath(new URL("./shell/maintenance.html", import.meta.url)),

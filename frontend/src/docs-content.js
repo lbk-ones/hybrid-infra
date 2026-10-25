@@ -36,7 +36,7 @@ export const permissionCatalog = [
   { name: "shortcuts", description: "注册和取消窗口或全局快捷键。" },
   { name: "settings", description: "读写应用配置和界面偏好、重新加载图标。" },
   { name: "credentials", description: "在系统凭据库中保存、读取或删除秘密值。" },
-  { name: "protocol", description: "注册或移除 hybrid-infra:// 专用链接。" },
+  { name: "protocol", description: "注册或移除当前应用身份对应的专用链接协议。" },
   { name: "shell", description: "运行白名单程序、读取输出和取消命令任务。" },
   { name: "shell.script", description: "额外允许 Shell 脚本模式，需同时具有 shell。" },
   { name: "cache", description: "读写同来源窗口共享的内存缓存。" },
@@ -114,7 +114,7 @@ export const methodDescriptions = {
   "Desktop.SetShortcut":
     "注册或取消一个快捷键，让用户按组合键就能回到指定页面；设为全局时，切到其他软件也能触发。",
   "Desktop.ConfigureProtocol":
-    "注册或移除本程序的专用链接，让系统能用 hybrid-infra:// 链接唤醒应用并跳到指定页面。",
+    "注册或移除本应用的专用链接协议，让系统能唤醒对应业务应用并跳到指定页面；默认身份保留 hybrid-infra://。",
   "Desktop.Credential":
     "在系统凭据库里保存、读取或删除令牌等秘密值，避免把它们塞进普通 JSON 配置。",
   "Shell.run":
@@ -196,6 +196,42 @@ function doc(category, id, title, summary, details) {
 }
 
 export const features = [
+  doc(
+    "start",
+    "application-settings",
+    "应用身份与配置中心",
+    "让不同业务应用各用自己的数据目录、单实例和协议；通过可视化页面编辑配置并查看保存与生效状态。",
+    {
+      api: ["Desktop.GetSettings()", "Desktop.SaveSettings(config)"],
+      caps: ["settings"],
+      language: "json",
+      params: [
+        [
+          "appId",
+          "小写字母、数字、连字符",
+          "hybrid-infra",
+          "以字母开头，最长 48 位；发布时写在 EXE 同目录配置或 HYBRID_APP_ID，不能在运行中改名。",
+        ],
+        ["HYBRID_APP_ID", "环境变量", "可选", "显式启动身份；配置里的 appId 若有值必须一致。"],
+        [
+          "HYBRID_DATA_DIR",
+          "环境变量",
+          "可选",
+          "覆盖默认目录，不自动附加 appId，部署多个应用时应分别指定。",
+        ],
+      ],
+      code: `{\n  "appId": "warehouse",\n  "pageMode": "builtin",\n  "url": "/",\n  "desktopCapabilities": ["settings", "files"]\n}`,
+      returns:
+        "配置中心地址 /shell/settings.html，工作台及托盘均有入口。GetSettings 还返回 configPath、configSource、dataDir、appId、protocolScheme 和 pendingFields。",
+      notes: [
+        "默认身份继续使用旧 hybrid-infra 数据目录和 hybrid-infra:// 协议，不自动搬动旧数据。新身份放在用户配置目录 hybrid-infra/apps/<appId>，协议为 hybrid-<appId>://。",
+        "身份先从 HYBRID_APP_ID、显式 HYBRID_SETTINGS 或部署配置引导，再读取该应用的专属用户配置；用户配置不能更换所属身份。",
+        "配置中心支持页面模式、目录选择、窗口、启动屏、托盘、权限勾选、来源覆盖、Shell 白名单和图标；高级 JSON 可编辑其他字段。",
+        "编辑只修改草稿；保存写入启动时固定的配置文件，当前权限不热更新，并列出待重启字段。读取设置需要 settings；目录选择额外需要 files。",
+        "appId 是发布身份，改用新 ID 会使用新目录，不是自动数据迁移；配置中心不提供跨应用迁移。",
+      ],
+    },
+  ),
   doc(
     "start",
     "page-sources",
@@ -622,12 +658,12 @@ export const features = [
     "desktop",
     "protocol",
     "URL 协议唤醒",
-    "注册当前用户的 hybrid-infra 协议，通过单实例机制转交站内路由。",
+    "注册当前应用的用户级协议，通过单实例机制转交站内路由，不与其他 appId 共用协议。",
     {
       api: ["Desktop.ConfigureProtocol(enable)"],
       caps: ["protocol"],
       params: [["enable", "boolean", "必填", "true 注册当前安装，false 移除当前安装的协议注册。"]],
-      code: `import { Desktop } from '/native/client.js';\n\nawait Desktop.ConfigureProtocol(true);\n// 可交给系统打开的链接：\nconst link = 'hybrid-infra://open?route=%2F%23workspace';\nconsole.log(link);`,
+      code: `import { Desktop, Hybrid } from '/native/client.js';\n\nconst info = await Hybrid.connect();\nawait Desktop.ConfigureProtocol(true);\n// 使用宿主返回的当前应用协议，不硬编码其他应用的名称。\nconst link = info.protocolScheme + '://open?route=%2F%23workspace';\nconsole.log(link);`,
       notes: [
         "Windows 当前用户注册，不在每次启动时自动改写注册表。",
         "开发构建路径变化后先移除旧注册。协议只路由页面，不执行任意 shell 命令。",

@@ -48,7 +48,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	dir, err := setting.DataDir()
+	dir, err := setting.DataDir(config.Identity())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -74,7 +74,7 @@ func main() {
 	}
 	options := application.Options{
 		Icon: appIcon,
-		Name: "hybrid-infra", Description: "Hybrid desktop host",
+		Name: config.Identity(), Description: "Hybrid desktop host",
 		Assets: application.AssetOptions{Handler: pageAssets, Middleware: application.ChainMiddleware(utils.AssetMiddleware(config.TrustedOrigins()), controller.Policy.Middleware)},
 		// 仅记录错误码，避免将底层错误中的业务内容写入诊断。
 		LogLevel: slog.Level(config.LogLevel), MarshalError: func(err error) []byte { maintenance.RecordError(err); return host.MarshalError(err) },
@@ -85,7 +85,11 @@ func main() {
 		RawMessageHandler: controller.NativeMessage,
 	}
 	if config.SingleInstance {
-		instanceKey := fmt.Sprintf("hybrid-infra-%x", sha256.Sum256([]byte(dir)))
+		identityKey := dir
+		if config.Identity() != setting.DefaultAppID {
+			identityKey = config.Identity() + "\n" + dir
+		}
+		instanceKey := fmt.Sprintf("hybrid-infra-%x", sha256.Sum256([]byte(identityKey)))
 		// 第二实例只转交固定协议路由，其余启动参数不作为系统命令执行。
 		options.SingleInstance = &application.SingleInstanceOptions{UniqueID: instanceKey, OnSecondInstanceLaunch: func(data application.SecondInstanceData) {
 			controller.WakeMain()
