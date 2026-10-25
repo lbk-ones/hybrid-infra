@@ -1,6 +1,8 @@
 package setting
 
 import (
+	"crypto/ed25519"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,7 +14,18 @@ import (
 )
 
 type Setting struct{}
+
+// UpdateConfig 固定更新信任根和频道；默认关闭，公钥由发布者离线生成，前端不能临时指定下载地址或签名密钥。
+type UpdateConfig struct {
+	Enabled        bool   `json:"enabled"`
+	ManifestURL    string `json:"manifestUrl"`
+	PublicKey      string `json:"publicKey"`
+	Channel        string `json:"channel"`
+	CheckOnStartup bool   `json:"checkOnStartup"`
+	AutoDownload   bool   `json:"autoDownload"`
+}
 type PkgInfo struct {
+	Updates             UpdateConfig        `json:"updates"`
 	ShellPrograms       []string            `json:"shellPrograms"` // 允许程序模式执行的程序；启动时解析为固定绝对路径，默认空列表。
 	Title               string              `json:"title"`
 	Url                 string              `json:"url"`
@@ -105,6 +118,22 @@ func (*Setting) Parse() (*PkgInfo, error) {
 
 // validate 检查窗口尺寸、关闭方式、加载超时、导航地址和能力名称等配置，拒绝无法识别或不安全的取值。
 func (p *PkgInfo) validate() error {
+	if p.Updates.Channel == "" {
+		p.Updates.Channel = "stable"
+	}
+	if p.Updates.Channel != "stable" && p.Updates.Channel != "beta" {
+		return errors.New("updates.channel must be stable or beta")
+	}
+	if p.Updates.Enabled {
+		u, e := url.Parse(p.Updates.ManifestURL)
+		if e != nil || u.Host == "" || u.User != nil || u.Fragment != "" || (u.Scheme != "https" && !(u.Scheme == "http" && (u.Hostname() == "localhost" || u.Hostname() == "127.0.0.1" || u.Hostname() == "::1"))) {
+			return errors.New("updates.manifestUrl requires HTTPS (loopback HTTP allowed for local tests)")
+		}
+		key, e := base64.StdEncoding.DecodeString(p.Updates.PublicKey)
+		if e != nil || len(key) != ed25519.PublicKeySize {
+			return errors.New("updates.publicKey must be a base64 Ed25519 public key")
+		}
+	}
 	if len(p.ShellPrograms) > 64 {
 		return errors.New("shellPrograms supports at most 64 programs")
 	}
@@ -149,7 +178,7 @@ func (p *PkgInfo) validate() error {
 	for _, capabilities := range permissionSets {
 		for _, capability := range capabilities {
 			switch capability {
-			case "host", "windows", "ui", "ui.html", "store", "log", "lifecycle", "events", "files", "downloads", "clipboard", "notifications", "shortcuts", "settings", "credentials", "protocol", "shell", "shell.script", "cache", "cache.global", "events.global", "screenshot":
+			case "host", "windows", "ui", "ui.html", "store", "log", "lifecycle", "events", "files", "downloads", "clipboard", "notifications", "shortcuts", "settings", "credentials", "protocol", "shell", "shell.script", "cache", "cache.global", "events.global", "screenshot", "diagnostics", "updates", "backups":
 			default:
 				return fmt.Errorf("unknown capability %q", capability)
 			}

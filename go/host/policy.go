@@ -19,7 +19,7 @@ import (
 )
 
 // Capabilities 列出当前外壳开放的能力名称；它不是任意页面默认拥有的权限清单。
-var Capabilities = []string{"host", "windows", "ui", "ui.html", "store", "log", "lifecycle", "events", "files", "downloads", "clipboard", "notifications", "shortcuts", "settings", "credentials", "protocol", "shell", "shell.script", "cache", "cache.global", "events.global", "screenshot"}
+var Capabilities = []string{"host", "windows", "ui", "ui.html", "store", "log", "lifecycle", "events", "files", "downloads", "clipboard", "notifications", "shortcuts", "settings", "credentials", "protocol", "shell", "shell.script", "cache", "cache.global", "events.global", "screenshot", "diagnostics", "updates", "backups"}
 
 // defaultCapabilities 保留第一阶段的默认授权；涉及磁盘和系统集成的新能力必须显式开启。
 var defaultCapabilities = []string{"host", "windows", "ui", "ui.html", "store", "log", "lifecycle", "events"}
@@ -35,6 +35,7 @@ type Principal struct {
 
 // Policy 维护来源授权、服务方法所需能力及窗口继承上限，在 HTTP RPC 入口统一执行检查。
 type Policy struct {
+	dataGate    sync.RWMutex // 备份时阻止 Store/设置 RPC 修改文件，避免读取原生 KV 非原子写入的半个文件。
 	config      *setting.PkgInfo
 	methods     map[uint32]string
 	names       map[string]string
@@ -250,6 +251,10 @@ func (p *Policy) Middleware(next http.Handler) http.Handler {
 		if capability == "" || !slices.Contains(grants, capability) {
 			writeError(w, 403, Fail("E_PERMISSION_DENIED", "当前来源没有调用该能力的权限"))
 			return
+		}
+		if capability == "store" || capability == "settings" {
+			p.dataGate.RLock()
+			defer p.dataGate.RUnlock()
 		}
 		r.Body = io.NopCloser(bytes.NewReader(body))
 		r.ContentLength = int64(len(body))

@@ -12,7 +12,7 @@ import (
 )
 
 // Register 创建应用数据目录，注册前端可调用的服务，并同步登记每个服务方法所需的能力，保证绑定与授权一致。
-func Register(app *application.App, controller *host.Controller) error {
+func Register(app *application.App, controller *host.Controller, maintenance *host.Maintenance) error {
 	dir, err := setting.DataDir()
 	if err != nil {
 		return err
@@ -35,6 +35,9 @@ func Register(app *application.App, controller *host.Controller) error {
 	register(application.NewService(&HostService{controller}), "host", map[string]string{"BeginTask": "lifecycle", "EndTask": "lifecycle", "GetPendingTasks": "lifecycle", "Quit": "lifecycle"})
 	register(application.NewService(&WindowService{controller}), "windows", nil)
 	desktop := host.NewDesktop(app, controller, dir)
+	maintenance.AttachDesktop(desktop)
+	register(application.NewService(&MaintenanceService{manager: maintenance}), "diagnostics", map[string]string{"ListBackups": "backups", "CreateBackup": "backups", "StageRestore": "backups", "GetUpdateState": "updates", "CheckUpdates": "updates", "DownloadUpdate": "updates", "CancelUpdate": "updates", "InstallUpdate": "updates", "RollbackUpdate": "updates"})
+	app.OnShutdown(maintenance.CancelUpdate)
 	bus := host.NewEventBus()
 	commands := host.NewCommandManager(controller)
 	controller.OnResourceWindowClosed(bus.CloseWindow)

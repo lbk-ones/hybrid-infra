@@ -8,6 +8,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
+        maintenance: fileURLToPath(new URL("./shell/maintenance.html", import.meta.url)),
         main: fileURLToPath(new URL("./index.html", import.meta.url)),
         status: fileURLToPath(new URL("./shell/status.html", import.meta.url)),
         manage: fileURLToPath(new URL("./shell/manage.html", import.meta.url)),

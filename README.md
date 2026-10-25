@@ -77,6 +77,7 @@ Go 弹框边界测试会调用 Node，因此运行 Go 测试也需要 Node.js。
 - [前端接入说明](docs/frontend-integration.md)
 - [第一阶段宿主能力、配置与验收](docs/phase1-host.md)
 - [第二阶段桌面能力、授权与 SDK 接入](docs/phase2-desktop.md)
+- [第三阶段诊断、备份迁移与签名更新](docs/phase3-maintenance.md)
 - [Shell、全局缓存、事件回调与环境检测](docs/business-bridge.md)
 - [通知堆叠、拖拽开关与区域截图](docs/ui-notifications-capture.md)
 - [本次升级、兼容变化与验证记录](docs/upgrade-2026-10-20.md)

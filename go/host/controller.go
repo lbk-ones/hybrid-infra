@@ -20,7 +20,9 @@ import (
 	"hybrid-infra/go/utils"
 )
 
-const Version = "0.1.0"
+// Version 可在发布构建时通过 -X hybrid-infra/go/host.Version=版本号 注入，普通开发构建保持当前基线。
+var Version = "0.1.0"
+
 const ProtocolVersion = 1
 const StatusPage = "/shell/status.html"
 
@@ -63,22 +65,23 @@ type Task struct {
 // Controller 统一管理桌面宿主的窗口、页面加载、任务退出保护和状态保存。
 // 前端通过 go/services 的权限入口间接使用它，不直接绑定本类型的全部方法。
 type Controller struct {
-	app            *application.App
-	config         *setting.PkgInfo
-	Policy         *Policy
-	store          *stateStore
-	mu             sync.RWMutex // 保护窗口登记、加载状态和任务列表，不应在持锁时调用原生窗口接口。
-	openMu         sync.Mutex   // 串行处理窗口创建与复用，防止相同 ID 被并发创建两次。
-	windows        map[string]*entry
-	tasks          map[string]Task
-	sequence       atomic.Uint64
-	quitting       atomic.Bool
-	promptOpen     atomic.Bool
-	tray           *application.SystemTray
-	trayStatus     *application.MenuItem
-	trayTasks      int
-	closeHandlers  []func(string)
-	nativeHandlers []func(application.Window, string, *application.OriginInfo) bool
+	app               *application.App
+	config            *setting.PkgInfo
+	Policy            *Policy
+	store             *stateStore
+	mu                sync.RWMutex // 保护窗口登记、加载状态和任务列表，不应在持锁时调用原生窗口接口。
+	openMu            sync.Mutex   // 串行处理窗口创建与复用，防止相同 ID 被并发创建两次。
+	windows           map[string]*entry
+	tasks             map[string]Task
+	sequence          atomic.Uint64
+	quitting          atomic.Bool
+	promptOpen        atomic.Bool
+	tray              *application.SystemTray
+	trayStatus        *application.MenuItem
+	trayTasks         int
+	closeHandlers     []func(string)
+	nativeHandlers    []func(application.Window, string, *application.OriginInfo) bool
+	mainReadyHandlers []func()
 }
 
 // New 创建宿主管理器，读取已有窗口状态，并初始化窗口、任务和权限登记表。此时尚未绑定 Wails 应用。
@@ -120,6 +123,22 @@ func (c *Controller) OnResourceWindowClosed(handler func(string)) {
 // OnNativeMessageHandler 在启动阶段登记内部原生页面消息处理器；统一校验顶层来源后才调用，处理器仍须验证窗口和随机会话凭证。
 func (c *Controller) OnNativeMessageHandler(handler func(application.Window, string, *application.OriginInfo) bool) {
 	c.nativeHandlers = append(c.nativeHandlers, handler)
+}
+
+// OnMainRuntimeReady 在启动阶段登记本地 WebView 就绪回调，用于更新后的健康确认，不依赖远程业务站点是否在线。
+func (c *Controller) OnMainRuntimeReady(handler func()) {
+	c.mainReadyHandlers = append(c.mainReadyHandlers, handler)
+}
+
+// reserveMaintenance 拒绝有业务任务时重启并阻止新任务；准备失败时调用返回函数撤销保留。
+func (c *Controller) reserveMaintenance() (func(), error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if len(c.tasks) > 0 || c.quitting.Load() {
+		return nil, Fail("E_BUSY", "仍有业务任务或应用正在退出，无法执行维护重启")
+	}
+	c.quitting.Store(true)
+	return func() { c.quitting.Store(false) }, nil
 }
 
 // EnvironmentInfo 区分真正由原生窗口发起的调用与普通浏览器连接；不能仅凭页面地址或 JavaScript 全局变量确认环境。
@@ -234,6 +253,11 @@ func (c *Controller) track(w application.Window, options utils.NewWindowOptions,
 	c.windows[w.Name()] = e
 	c.mu.Unlock()
 	w.OnWindowEvent(events.Common.WindowRuntimeReady, func(*application.WindowEvent) {
+		if w.Name() == "main-window" {
+			for _, handler := range c.mainReadyHandlers {
+				handler()
+			}
+		}
 		c.mu.RLock()
 		initial := e.status == "starting"
 		c.mu.RUnlock()

@@ -2,6 +2,7 @@
 import * as Host from "../bindings/hybrid-infra/go/services/hostservice.js";
 import * as Windows from "../bindings/hybrid-infra/go/services/windowservice.js";
 import * as Desktop from "../bindings/hybrid-infra/go/services/desktopservice.js";
+import * as Maintenance from "../bindings/hybrid-infra/go/services/maintenanceservice.js";
 import * as Cache from "../bindings/hybrid-infra/go/services/cacheservice.js";
 import * as EventService from "../bindings/hybrid-infra/go/services/eventservice.js";
 import * as ShellService from "../bindings/hybrid-infra/go/services/shellservice.js";
@@ -10,7 +11,7 @@ import { createShell } from "./shell-client.js";
 import * as UIBindings from "../bindings/hybrid-infra/go/services/uiservice.js";
 import { createUI } from "./ui-client.js";
 import { createClient } from "./sdk-core.js";
-export { Host, Windows, Desktop, Cache };
+export { Host, Windows, Desktop, Cache, Maintenance };
 export { HybridError, normalizeError } from "./sdk-core.js";
 export const Hybrid = createClient(Host);
 export const Events = createEvents(EventService, Hybrid.call);

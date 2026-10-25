@@ -47,6 +47,19 @@ test('desktop facade forwards file bytes and clipboard operations', async () => 
  } finally { configureHybrid({ transport: null }); }
 });
 
+// 验证维护绑定走现有独立前端传输，不依赖工作台路由，也不擅自更换方法参数。
+test('maintenance facade forwards opaque backup IDs and update actions', async () => {
+ const { Maintenance } = await import('../hybrid/client.js');
+ const calls = [];
+ configureHybrid({ transport: { async call(...args) { calls.push(args); return null; } } });
+ try {
+  await Maintenance.StageRestore('opaque-backup-id');
+  assert.deepEqual(calls.at(-1)[3].args, ['opaque-backup-id']);
+  await Maintenance.InstallUpdate();
+  assert.deepEqual(calls.at(-1)[3].args, []);
+ } finally { configureHybrid({ transport: null }); }
+});
+
 test('remote frontend calls the shell without depending on frontend origin', async () => {
  await UI.Alert('引号"\n', 'body', 2, 'bottomRight');
  const request = requests.at(-1);

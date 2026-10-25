@@ -12,6 +12,13 @@ export class PkgInfo {
      * @param {Partial<PkgInfo>} [$$source = {}] - The source object to create the PkgInfo.
      */
     constructor($$source = {}) {
+        if (!("updates" in $$source)) {
+            /**
+             * @member
+             * @type {UpdateConfig}
+             */
+            this["updates"] = (new UpdateConfig());
+        }
         if (!("shellPrograms" in $$source)) {
             /**
              * 允许程序模式执行的程序；启动时解析为固定绝对路径，默认空列表。
@@ -170,30 +177,101 @@ export class PkgInfo {
      */
     static createFrom($$source = {}) {
         const $$createField0_0 = $$createType0;
-        const $$createField8_0 = $$createType0;
-        const $$createField16_0 = $$createType0;
-        const $$createField18_0 = $$createType1;
-        const $$createField19_0 = $$createType0;
+        const $$createField1_0 = $$createType1;
+        const $$createField9_0 = $$createType1;
+        const $$createField17_0 = $$createType1;
+        const $$createField19_0 = $$createType2;
+        const $$createField20_0 = $$createType1;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("updates" in $$parsedSource) {
+            $$parsedSource["updates"] = $$createField0_0($$parsedSource["updates"]);
+        }
         if ("shellPrograms" in $$parsedSource) {
-            $$parsedSource["shellPrograms"] = $$createField0_0($$parsedSource["shellPrograms"]);
+            $$parsedSource["shellPrograms"] = $$createField1_0($$parsedSource["shellPrograms"]);
         }
         if ("allowedOrigins" in $$parsedSource) {
-            $$parsedSource["allowedOrigins"] = $$createField8_0($$parsedSource["allowedOrigins"]);
+            $$parsedSource["allowedOrigins"] = $$createField9_0($$parsedSource["allowedOrigins"]);
         }
         if ("navigationOrigins" in $$parsedSource) {
-            $$parsedSource["navigationOrigins"] = $$createField16_0($$parsedSource["navigationOrigins"]);
+            $$parsedSource["navigationOrigins"] = $$createField17_0($$parsedSource["navigationOrigins"]);
         }
         if ("permissions" in $$parsedSource) {
-            $$parsedSource["permissions"] = $$createField18_0($$parsedSource["permissions"]);
+            $$parsedSource["permissions"] = $$createField19_0($$parsedSource["permissions"]);
         }
         if ("desktopCapabilities" in $$parsedSource) {
-            $$parsedSource["desktopCapabilities"] = $$createField19_0($$parsedSource["desktopCapabilities"]);
+            $$parsedSource["desktopCapabilities"] = $$createField20_0($$parsedSource["desktopCapabilities"]);
         }
         return new PkgInfo(/** @type {Partial<PkgInfo>} */($$parsedSource));
     }
 }
 
+/**
+ * UpdateConfig 固定更新信任根和频道；默认关闭，公钥由发布者离线生成，前端不能临时指定下载地址或签名密钥。
+ */
+export class UpdateConfig {
+    /**
+     * Creates a new UpdateConfig instance.
+     * @param {Partial<UpdateConfig>} [$$source = {}] - The source object to create the UpdateConfig.
+     */
+    constructor($$source = {}) {
+        if (!("enabled" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["enabled"] = false;
+        }
+        if (!("manifestUrl" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["manifestUrl"] = "";
+        }
+        if (!("publicKey" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["publicKey"] = "";
+        }
+        if (!("channel" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["channel"] = "";
+        }
+        if (!("checkOnStartup" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["checkOnStartup"] = false;
+        }
+        if (!("autoDownload" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["autoDownload"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new UpdateConfig instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {UpdateConfig}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new UpdateConfig(/** @type {Partial<UpdateConfig>} */($$parsedSource));
+    }
+}
+
 // Private type creation functions
-const $$createType0 = $Create.Array($Create.Any);
-const $$createType1 = $Create.Map($Create.Any, $$createType0);
+const $$createType0 = UpdateConfig.createFrom;
+const $$createType1 = $Create.Array($Create.Any);
+const $$createType2 = $Create.Map($Create.Any, $$createType1);

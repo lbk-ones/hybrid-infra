@@ -17,6 +17,76 @@ import * as application$0 from "../../../github.com/wailsapp/wails/v3/pkg/applic
 import * as setting$0 from "../setting/models.js";
 
 /**
+ * BackupInfo 是备份清单；ID 只在固定备份目录解析，不接受前端文件路径。
+ */
+export class BackupInfo {
+    /**
+     * Creates a new BackupInfo instance.
+     * @param {Partial<BackupInfo>} [$$source = {}] - The source object to create the BackupInfo.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("created" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["created"] = "";
+        }
+        if (!("version" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["version"] = "";
+        }
+        if (!("schema" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["schema"] = 0;
+        }
+        if (!("size" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["size"] = 0;
+        }
+        if (!("hashes" in $$source)) {
+            /**
+             * @member
+             * @type {{ [_ in string]?: string }}
+             */
+            this["hashes"] = {};
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new BackupInfo instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {BackupInfo}
+     */
+    static createFrom($$source = {}) {
+        const $$createField5_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("hashes" in $$parsedSource) {
+            $$parsedSource["hashes"] = $$createField5_0($$parsedSource["hashes"]);
+        }
+        return new BackupInfo(/** @type {Partial<BackupInfo>} */($$parsedSource));
+    }
+}
+
+/**
  * BusMessage 是跨进程传递的纯 JSON 消息；listenerId 用于在前端找到本地函数，函数本身不会传入 Go。
  */
 export class BusMessage {
@@ -188,8 +258,8 @@ export class CaptureDisplay {
      * @returns {CaptureDisplay}
      */
     static createFrom($$source = {}) {
-        const $$createField3_0 = $$createType0;
-        const $$createField4_0 = $$createType0;
+        const $$createField3_0 = $$createType1;
+        const $$createField4_0 = $$createType1;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("physical" in $$parsedSource) {
             $$parsedSource["physical"] = $$createField3_0($$parsedSource["physical"]);
@@ -307,7 +377,7 @@ export class CommandInfo {
      * @returns {CommandInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField4_0 = $$createType2;
+        const $$createField4_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("error" in $$parsedSource) {
             $$parsedSource["error"] = $$createField4_0($$parsedSource["error"]);
@@ -377,7 +447,7 @@ export class CommandOptions {
      * @returns {CommandOptions}
      */
     static createFrom($$source = {}) {
-        const $$createField2_0 = $$createType3;
+        const $$createField2_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("args" in $$parsedSource) {
             $$parsedSource["args"] = $$createField2_0($$parsedSource["args"]);
@@ -440,7 +510,7 @@ export class CommandOutput {
      * @returns {CommandOutput}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType4;
+        const $$createField0_0 = $$createType5;
         const $$createField1_0 = $Create.ByteSlice;
         const $$createField2_0 = $Create.ByteSlice;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
@@ -577,7 +647,7 @@ export class DownloadInfo {
      * @returns {DownloadInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField6_0 = $$createType2;
+        const $$createField6_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("error" in $$parsedSource) {
             $$parsedSource["error"] = $$createField6_0($$parsedSource["error"]);
@@ -907,7 +977,7 @@ export class ScreenshotResult {
      * @returns {ScreenshotResult}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType0;
+        const $$createField0_0 = $$createType1;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("region" in $$parsedSource) {
             $$parsedSource["region"] = $$createField0_0($$parsedSource["region"]);
@@ -963,9 +1033,9 @@ export class SettingsSnapshot {
      * @returns {SettingsSnapshot}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType6;
-        const $$createField1_0 = $$createType6;
-        const $$createField2_0 = $$createType7;
+        const $$createField0_0 = $$createType7;
+        const $$createField1_0 = $$createType7;
+        const $$createField2_0 = $$createType8;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("active" in $$parsedSource) {
             $$parsedSource["active"] = $$createField0_0($$parsedSource["active"]);
@@ -1029,6 +1099,72 @@ export class Task {
     static createFrom($$source = {}) {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new Task(/** @type {Partial<Task>} */($$parsedSource));
+    }
+}
+
+/**
+ * UpdateState 是前端可见的进度，不暴露下载地址、公钥或本地可执行文件路径。
+ */
+export class UpdateState {
+    /**
+     * Creates a new UpdateState instance.
+     * @param {Partial<UpdateState>} [$$source = {}] - The source object to create the UpdateState.
+     */
+    constructor($$source = {}) {
+        if (!("canRollback" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["canRollback"] = false;
+        }
+        if (!("enabled" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["enabled"] = false;
+        }
+        if (!("stage" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["stage"] = "";
+        }
+        if (!("version" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["version"] = "";
+        }
+        if (!("progress" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["progress"] = 0;
+        }
+        if (!("code" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["code"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new UpdateState instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {UpdateState}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new UpdateState(/** @type {Partial<UpdateState>} */($$parsedSource));
     }
 }
 
@@ -1107,8 +1243,8 @@ export class WindowInfo {
      * @returns {WindowInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField5_0 = $$createType8;
-        const $$createField7_0 = $$createType2;
+        const $$createField5_0 = $$createType9;
+        const $$createField7_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("bounds" in $$parsedSource) {
             $$parsedSource["bounds"] = $$createField5_0($$parsedSource["bounds"]);
@@ -1121,12 +1257,13 @@ export class WindowInfo {
 }
 
 // Private type creation functions
-const $$createType0 = CaptureRegion.createFrom;
-const $$createType1 = Error.createFrom;
-const $$createType2 = $Create.Nullable($$createType1);
-const $$createType3 = $Create.Array($Create.Any);
-const $$createType4 = CommandInfo.createFrom;
-const $$createType5 = setting$0.PkgInfo.createFrom;
-const $$createType6 = $Create.Nullable($$createType5);
-const $$createType7 = Preferences.createFrom;
-const $$createType8 = application$0.Rect.createFrom;
+const $$createType0 = $Create.Map($Create.Any, $Create.Any);
+const $$createType1 = CaptureRegion.createFrom;
+const $$createType2 = Error.createFrom;
+const $$createType3 = $Create.Nullable($$createType2);
+const $$createType4 = $Create.Array($Create.Any);
+const $$createType5 = CommandInfo.createFrom;
+const $$createType6 = setting$0.PkgInfo.createFrom;
+const $$createType7 = $Create.Nullable($$createType6);
+const $$createType8 = Preferences.createFrom;
+const $$createType9 = application$0.Rect.createFrom;

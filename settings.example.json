@@ -16,7 +16,8 @@
   "allowedOrigins": [],
   "navigationOrigins": [],
   "permissions": {},
-  "desktopCapabilities": ["files", "downloads", "clipboard", "notifications", "shortcuts", "settings", "credentials", "protocol", "cache", "screenshot"],
+  "desktopCapabilities": ["files", "downloads", "clipboard", "notifications", "shortcuts", "settings", "credentials", "protocol", "cache", "screenshot", "diagnostics", "backups", "updates"],
+  "updates": {"enabled": false, "manifestUrl": "", "publicKey": "", "channel": "stable", "checkOnStartup": false, "autoDownload": false},
   "shellPrograms": ["go", "git"],
   "logLevel": 0
 }

@@ -7,6 +7,7 @@ import * as DesktopService from "./desktopservice.js";
 import * as EventService from "./eventservice.js";
 import * as GreetService from "./greetservice.js";
 import * as HostService from "./hostservice.js";
+import * as MaintenanceService from "./maintenanceservice.js";
 import * as ShellService from "./shellservice.js";
 import * as UiService from "./uiservice.js";
 import * as WindowService from "./windowservice.js";
@@ -16,6 +17,7 @@ export {
     EventService,
     GreetService,
     HostService,
+    MaintenanceService,
     ShellService,
     UiService,
     WindowService
