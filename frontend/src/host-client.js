@@ -13,6 +13,12 @@ import { createUI } from "./ui-client.js";
 import { createClient } from "./sdk-core.js";
 import * as Database from "../bindings/hybrid-infra/go/services/databaseservice.js";
 import * as TaskService from "../bindings/hybrid-infra/go/services/taskservice.js";
+import * as DocumentService from "../bindings/hybrid-infra/go/services/documentservice.js";
+import { createDocuments } from "./documents-client.js";
+export const Documents = createDocuments(DocumentService);
+import * as DeviceService from "../bindings/hybrid-infra/go/services/deviceservice.js";
+import { createDevices } from "./devices-client.js";
+export const Devices = createDevices(DeviceService);
 import { createTasks } from "./tasks-client.js";
 export const Tasks = createTasks(TaskService);
 export { Host, Windows, Desktop, Cache, Maintenance, Database };
@@ -27,4 +33,6 @@ if (typeof window !== "undefined")
   window.addEventListener("pagehide", () => {
     void Events.close().catch(() => {});
     Tasks.dispose();
+    Documents.dispose();
+    Devices.dispose();
   });

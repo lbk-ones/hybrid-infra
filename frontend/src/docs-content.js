@@ -21,7 +21,7 @@ export const permissionCatalog = [
   { name: "log", description: "写入宿主日志、查询和调整日志级别。", defaultGranted: true },
   {
     name: "lifecycle",
-    description: "登记未完成任务、解除任务保护和请求退出。",
+    description: "登记未完成任务、解除任务保护、请求退出和安全重启。",
     defaultGranted: true,
   },
   {
@@ -49,6 +49,11 @@ export const permissionCatalog = [
   { name: "tasks", description: "提交、查询和管理本窗口任务及持久化历史。" },
   { name: "tasks.manage", description: "配合 tasks 查看、取消整个应用的任务；重试仍需原窗口。" },
   { name: "database", description: "读写按来源隔离的 SQLite 业务记录，支持分页、版本和事务。" },
+  { name: "printing", description: "生成本机报表并打开默认浏览器，用户可打印或另存 PDF。" },
+  { name: "documents", description: "校验、导入和导出 CSV、JSON、XLSX 与表格 ZIP。" },
+  { name: "devices.serial", description: "枚举、打开串口，收发串口设备原始字节。" },
+  { name: "devices.network", description: "连接 deviceEndpoints 白名单中的 TCP 设备并收发字节。" },
+  { name: "devices.print", description: "枚举已安装打印机并提交 RAW 标签打印指令。" },
 ];
 
 export const permissionSnippets = {
@@ -70,6 +75,39 @@ export const permissionSnippets = {
 
 // 按方法名维护通俗说明；同一方法出现在多个功能页时共用介绍，避免说法不一致。
 export const methodDescriptions = {
+  "Host.Restart": "重新启动当前外壳并读取已保存配置；有未完成任务时拒绝，不允许指定其他程序。",
+  "Devices.ListPorts": "查看系统现在有哪些串口，不会打开端口或发送探测指令。",
+  "Devices.OpenSerial": "按波特率、数据位和校验位打开真实串口，返回本窗口的临时连接 ID。",
+  "Devices.OpenTCP": "连接配置白名单中的 IP:端口，供网络标签机等设备使用。",
+  "Devices.ListConnections": "查看当前窗口拥有的连接及状态，不把其他窗口的设备句柄暴露出来。",
+  "Devices.CancelRead":
+    "停止当前接收等待并释放读取权，不关闭硬件或清空已接收数据；SDK 切换监听时自动调用。",
+  "Devices.Read": "等待一批接收字节或断线状态；通常让 onData 自动轮询，不要同时手动读取。",
+  "Devices.Write": "向指定设备发送 Base64 字节，返回实际写入数量，不代表设备已经完成业务动作。",
+  "Devices.Close": "关闭当前窗口的连接，remove 为 true 时同时清掉连接记录。",
+  "Devices.encode": "把 UTF-8 文本或十六进制字节转成发送接口需要的 Base64。",
+  "Devices.writeText": "按 UTF-8 发送文本；实际设备需要 GBK 等编码时请业务自行编码后发送字节。",
+  "Devices.writeHex": "按十六进制准确发送字节，例如 1B 40，不拼接 Shell 命令。",
+  "Devices.onData": "给连接注册字节、文本或按行回调，回调只在当前页面执行；返回停止监听函数。",
+  "Devices.onScan": "在指定输入区域识别快速按键加 Enter 的扫码输入，返回解除监听函数。",
+  "Devices.parseWeight":
+    "解析常见 ST/US、GS/NT 文本秤帧，返回重量、单位和稳定状态；未知协议明确报错。",
+  "Devices.ListPrinters": "查看系统已安装打印机名称，不会发送测试标签。",
+  "Devices.PrintRaw":
+    "把 ZPL、TSPL、ESC/POS 等原始指令提交给已安装打印机，返回作业 ID，不代表已出纸。",
+  "Devices.dispose": "整页卸载时停止扫码、接收并关闭本页连接，之后需刷新页面重新创建客户端。",
+  "Documents.Parse": "把传入的 Base64 文件解析成表格，先校验再返回，不自动入库。",
+  "Documents.ImportFile": "使用本窗口的文件 token 读取并预览表格，额外需要 files。",
+  "Documents.ExportFile": "把表格保存到用户选择的文件位置，校验成功后才替换目标。",
+  "Documents.OpenPrintPreview":
+    "由宿主生成固定模板本地报表并打开系统默认浏览器，再由用户打印或另存 PDF。",
+  "Documents.Print": "请求平台原生打印；当前固定 Windows 版本明确返回不支持，请用 printReport。",
+  "Documents.readFile": "读取用户选中或拖入的 File，自动识别格式，再交给宿主校验。",
+  "Documents.onDrop": "监听指定区域的文件拖入，回调留在本页；返回解除监听函数。",
+  "Documents.preview": "把表格渲染成可见报表预览，业务值只作为文本展示；返回清理函数。",
+  "Documents.printReport": "打开系统默认浏览器中的本地报表，再点击打印或另存 PDF。",
+  "Documents.dispose":
+    "整页卸载时清理本客户端创建的预览 DOM；拖放由返回的函数解除，不关闭外部查看程序。",
   "Tasks.run": "把业务函数放进队列执行，回调里上报进度、检查取消信号；函数保留在本页。",
   "Tasks.List": "查看当前窗口任务和历史；有 tasks.manage 时可查看整个应用。",
   "Tasks.Cancel": "请求停止任务；业务函数需要检查 signal 并自行清理。",
@@ -228,6 +266,12 @@ export const features = [
       caps: ["settings"],
       language: "json",
       params: [
+        [
+          "windowState",
+          "auto / normal / maximized / fullscreen",
+          "auto",
+          "主窗口启动模式：自动跟随记忆、普通窗口、最大化或全屏。指定模式优先于上次记忆，保存后重启生效；F11 可切换全屏。",
+        ],
         [
           "appId",
           "小写字母、数字、连字符",
@@ -522,6 +566,234 @@ export const features = [
         "PNG 必须为 16–1024 像素正方形，≤2 MiB。远程地址最多等待 8 秒。",
         "两个资源校验完成后才替换，失败保留原图标；不自动监视配置文件。",
         "Windows 运行窗口可动态更新，EXE 文件和固定快捷方式仍受打包资源及系统缓存影响。",
+      ],
+    },
+  ),
+  doc(
+    "desktop",
+    "device-serial",
+    "串口与设备数据回调",
+    "连接串口扫码枪、电子秤或标签机，通过共享接收流在前端回调真实数据。",
+    {
+      api: [
+        "Devices.ListPorts()",
+        "Devices.OpenSerial(options)",
+        "Devices.ListConnections()",
+        "Devices.Read(id, timeoutMs)",
+        "Devices.CancelRead(id)",
+        "Devices.Write(id, data)",
+        "Devices.Close(id, remove)",
+        "Devices.onData(id, callback, options)",
+        "Devices.encode(text, format)",
+        "Devices.writeText(id, text)",
+        "Devices.writeHex(id, hex)",
+        "Devices.dispose()",
+      ],
+      caps: ["devices.serial"],
+      params: [
+        [
+          "options",
+          "object",
+          "OpenSerial 必填",
+          "port、baudRate、dataBits、parity、stopBits、dtr、rts。",
+        ],
+        [
+          "callback",
+          "function",
+          "onData 必填",
+          "bytes 返回 Uint8Array，text 返回流式文本，lines 返回完整行。",
+        ],
+        [
+          "options.mode / encoding",
+          "string",
+          "bytes / utf-8",
+          "可用 text、lines；文本编码需与真实设备一致。",
+        ],
+        [
+          "remove",
+          "boolean",
+          "Close 默认 true",
+          "关闭后同时移除记录；false 保留终态以便读取剩余数据。",
+        ],
+      ],
+      code: "import { Devices } from '/native/client.js';\n\nconst ports=await Devices.ListPorts();\nconst device=await Devices.OpenSerial({port:ports[0],baudRate:9600,dataBits:8,parity:'none',stopBits:'1',dtr:false,rts:false});\nconst off=Devices.onData(device.id,line=>console.log(line),{mode:'lines',encoding:'utf-8',onError:console.error});\n// 组件卸载：off(); await Devices.Close(device.id,true);",
+      returns:
+        "连接返回 {id,kind,name,state}；Read 返回 {packets,state,error}，包内 data 是 Base64；Write 返回实际写入字节数。",
+      notes: [
+        "入口 /shell/devices.html；串口显式授权 devices.serial，TCP 连接读写需 devices.network。Read/Write/Close 根据真实连接类型再校验。",
+        "默认 9600、8N1，DTR/RTS 关闭；打开真实串口仍可能由系统驱动产生控制线脉冲，请按设备说明书使用。",
+        "最多 8 项活动连接、每窗口 4 项、全应用 64 条记录；同一串口独占，连接按来源与窗口隔离。",
+        "每次写入最多 64 KiB，五秒超时关闭连接；已发送部分不能撤回，绝不自动重试。",
+        "接收队列最多 64 块/256 KiB，积压明确报错并关闭；onData 多回调共享单个 Read，断开时交付最后数据。",
+        "窗口关闭立即释放；无读取或写入一分钟回收。停止回调后若不再使用，应主动 Close。",
+        "没有真实硬件验收；二进制帧、校验和、指令应答和厂商协议由业务处理，不提供通用 USB HID 底层接口。",
+      ],
+    },
+  ),
+  doc(
+    "desktop",
+    "device-network",
+    "网络设备与标签指令",
+    "通过固定 IP:端口白名单连接 TCP 设备，不扫描网络或自动探测。",
+    {
+      api: ["Devices.OpenTCP(endpoint)"],
+      caps: ["devices.network"],
+      params: [
+        [
+          "endpoint",
+          "string",
+          "必填",
+          "与启动配置 deviceEndpoints 中的一项完全一致，仅字面 IP 和端口。",
+        ],
+      ],
+      code: "import { Devices } from '/native/client.js';\n\nconst device=await Devices.OpenTCP('192.168.1.50:9100');\n// 仅在确认设备语言、纸张和业务数据后主动发送：\n// await Devices.writeText(device.id,'^XA^FO30,30^A0N,30,30^FDDEMO^FS^XZ');\n// await Devices.Close(device.id,true);",
+      returns: "返回当前窗口拥有的 TCP 连接快照；网络收发复用 Read/Write/onData。",
+      notes: [
+        '配置中心新增网络设备白名单，保存并重启生效；示例 deviceEndpoints:["192.168.1.50:9100"]。',
+        "不接受域名、URL、通配符、组播或未指定地址；连接超时五秒。",
+        "TCP 端口常见为 9100，但真实端口和协议必须以设备说明书为准；不是自动识别打印机。",
+        "TCP 未内置 TLS、认证或协议加密，仅在受信任设备网络中按业务部署。",
+      ],
+    },
+  ),
+  doc(
+    "desktop",
+    "device-scanner-scale",
+    "扫码枪与文本电子秤",
+    "键盘扫码回调与常见文本秤帧解析，不自动推断未知设备协议。",
+    {
+      api: ["Devices.onScan(target, callback, options)", "Devices.parseWeight(text, options)"],
+      caps: [],
+      params: [
+        [
+          "target",
+          "Element | selector",
+          "onScan 必填",
+          "建议独立扫码输入框，需保持焦点；不注册系统级键盘钩子。",
+        ],
+        [
+          "options",
+          "object",
+          "可选",
+          "onScan:gapMs、minLength、maxLength、terminator、prefix；parseWeight:defaultUnit。",
+        ],
+      ],
+      code: "import { Devices } from '/native/client.js';\n\nconst off=Devices.onScan('#scan-input',code=>console.log(code),{gapMs:50,minLength:3});\nconst weight=Devices.parseWeight('ST,GS,+0012.340kg');\nconsole.log(weight.value,weight.unit,weight.stable);\n// 组件卸载：off();",
+      returns:
+        "onScan 返回停止监听函数；parseWeight 返回 {value,unit,stable,overload,raw}。无稳定标志时 stable 为 null。",
+      notes: [
+        "键盘模式 USB 扫码枪表现为快速按键，不代表硬件身份识别，快速打字也可能匹配；串口扫码枪使用 onData lines。",
+        "默认按键间隔 50 ms、至少 3 字符、Enter 终止，支持前缀匹配；忽略快捷键、重复键和输入法组合。",
+        "支持 ST/US/OL、可选 GS/NT、kg/g/lb/t；没有单位时保留空值或显式指定 defaultUnit。",
+        "不换算单位、不平滑重量、不把没有状态的值当成稳定重量。私有二进制秤帧需自行实现协议。",
+      ],
+    },
+  ),
+  doc(
+    "desktop",
+    "device-label-printer",
+    "系统 RAW 标签打印",
+    "向已安装打印机发送原始设备语言，适合支持 ZPL、TSPL、ESC/POS 的标签或票据设备。",
+    {
+      api: ["Devices.ListPrinters()", "Devices.PrintRaw(printer, title, data)"],
+      caps: ["devices.print"],
+      params: [
+        [
+          "printer",
+          "string",
+          "必填",
+          "从 ListPrinters 返回名称选择，不接受任意未安装 UNC 打印机。",
+        ],
+        [
+          "data",
+          "Base64",
+          "必填",
+          "最多 64 KiB 原始指令；Devices.encode 支持 UTF-8 文本和十六进制。",
+        ],
+      ],
+      code: "import { Devices } from '/native/client.js';\n\nconst names=await Devices.ListPrinters();\nconsole.log(names);\n// 确认设备支持 ZPL 且准备真实出纸后再提交：\n// const job=await Devices.PrintRaw(names[0],'业务标签',Devices.encode('^XA^FO30,30^A0N,30,30^FDDEMO^FS^XZ','text'));",
+      returns: "返回系统打印后台作业 ID，不代表设备已完成打印，不提供自动重打。",
+      notes: [
+        "系统 RAW 打印当前仅 Windows 实现；串口和 TCP 标签机可以走对应通信连接。",
+        "不安装驱动、不选择设备语言、不自动转换 GBK 或标签尺寸；UTF-8 中文必须设备和指令集支持。",
+        "每次最多 64 KiB、最多两项同时提交，操作系统打印调用期间保留退出保护。",
+        "取消 RPC 等待不能保证取消已提交的后台作业；请在系统打印队列处理，不自动重试以免重复出纸。",
+        "没有实物打印验收，自动化测试不会向真实打印机发送测试标签。",
+      ],
+    },
+  ),
+  doc(
+    "desktop",
+    "printing",
+    "打印与 PDF",
+    "生成本地报表并打开系统默认浏览器，用户可打印或另存 PDF。",
+    {
+      api: [
+        "Documents.preview(target, report)",
+        "Documents.printReport(report)",
+        "Documents.OpenPrintPreview(report)",
+        "Documents.Print()",
+        "Documents.dispose()",
+      ],
+      caps: ["printing"],
+      params: [
+        [
+          "report",
+          "object",
+          "预览/报表打印必填",
+          "title、subtitle、headers、rows、footer、paper、orientation。",
+        ],
+        [
+          "paper / orientation",
+          "string",
+          "A4 / portrait",
+          "paper 可用 A4、Letter；方向 portrait 或 landscape。",
+        ],
+        ["target", "Element | selector", "preview 必填", "现有 DOM 容器；返回函数清理本次预览。"],
+      ],
+      code: "import { Documents } from '/native/client.js';\n\nawait Documents.printReport({title:'订单报表',headers:['订单号','金额'],rows:[['001','128.00']],paper:'A4',orientation:'portrait'});",
+      returns:
+        "printReport 返回 requested:true、mode 为 external-preview；OpenPrintPreview 无返回值，只表示打开请求，不是完成回执。",
+      notes: [
+        "入口 /shell/documents.html，工作台和托盘均可打开；原生打印显式授权 printing。",
+        "系统默认浏览器需支持打印，通常为系统浏览器；当前没有静默 PDF、批量打印或打印机枚举接口。",
+        "不接受任意 HTML，业务值按文本转义；报表仅保留在本机内存，通过随机回环地址预览，退出时停止预览服务。",
+        "预览无需原生授权，文件中心的打印按钮还需 documents 校验当前表格。",
+        "报表最多 100 列、5000 行和 384 KiB JSON；纸张方向需在系统预览确认。当前 Windows 原生 Print 不可用，改用 printReport。",
+      ],
+    },
+  ),
+  doc(
+    "desktop",
+    "document-files",
+    "文件拖入与导入导出",
+    "统一 CSV、JSON、XLSX 和表格 ZIP 的校验、预览与保存，文件回调保留在前端。",
+    {
+      api: [
+        "Documents.Parse(format, data)",
+        "Documents.ImportFile(token, format)",
+        "Documents.ExportFile(token, format, table)",
+        "Documents.readFile(file, format)",
+        "Documents.onDrop(target, handler, options)",
+      ],
+      caps: ["documents"],
+      params: [
+        ["format", "string", "必填 / readFile 可推断", "csv、json、xlsx、zip。"],
+        ["data", "Base64", "Parse 必填", "用户提供的文件内容，最多 512 KiB。"],
+        ["table", "object", "ExportFile 必填", "headers 为唯一非空列名，rows 为矩形字符串数组。"],
+        ["token", "string", "原生读写必填", "本窗口的文件授权，需同时授予 files。"],
+        ["handler", "function", "onDrop 必填", "接收 File[]，不自动读取、上传或入库。"],
+      ],
+      code: "import { Documents, Desktop } from '/native/client.js';\n\nconst file = await Desktop.SelectFile('open','');\ntry {\n  const table = await Documents.ImportFile(file.token,'csv');\n  console.log(table.headers,table.rows,table.warnings);\n} finally { await Desktop.ReleaseFile(file.token); }",
+      returns:
+        "解析返回 {headers,rows,warnings}；导出返回 {format,bytes}；onDrop 返回解除监听函数。",
+      notes: [
+        "每文件最多 512 KiB；全表最多 384 KiB JSON、100 列、5000 行；格式/容量错误明确拒绝，不静默截断。",
+        "CSV 为 UTF-8，可含 BOM 和引号换行；所有单元格都是文本，导出 CSV 对公式样式文本加单引号。",
+        "XLSX 读取第一个工作表，不计算公式，拒绝旧 XLS 和加密文件；JSON/ZIP 保留原始文本。",
+        "ZIP 只接受仅含 table.json 的表格包，不提供通用附件解压。压缩包解压最多 8 MiB、256 个条目。",
+        "onDrop 基于标准 File API，不返回磁盘绝对路径；组件卸载须调用返回函数，一次最多 10 个文件。",
+        "导入不自动写数据库；业务可按字段规则校验后用 Database.Batch 写入，避免猜测字段和覆盖数据。",
       ],
     },
   ),
@@ -957,6 +1229,7 @@ export const features = [
         "Host.EndTask(id)",
         "Host.GetPendingTasks()",
         "Host.Quit()",
+        "Host.Restart()",
       ],
       caps: ["lifecycle"],
       params: [

@@ -6,6 +6,25 @@ import (
 	"testing"
 )
 
+// TestWindowStartupModeValidation 验证旧配置默认自动启动，四种显示模式可保存，拼写错误会明确拒绝。
+func TestWindowStartupModeValidation(t *testing.T) {
+	for _, mode := range []string{"", "auto", "normal", "maximized", "fullscreen", "wrong"} {
+		config, err := ReadConfig("", DefaultAppID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		config.WindowState = mode
+		err = config.Validate()
+		if mode == "wrong" {
+			if err == nil {
+				t.Fatal("accepted invalid window mode")
+			}
+		} else if err != nil || (mode == "" && config.WindowState != "auto") {
+			t.Fatalf("mode=%q config=%q err=%v", mode, config.WindowState, err)
+		}
+	}
+}
+
 // TestSplashDefaultsAndDisable 验证缺省配置开启启动屏，同时显式 false 不会被默认值覆盖。
 func TestSplashDefaultsAndDisable(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "settings.json")

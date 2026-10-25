@@ -13,6 +13,7 @@
     "checkOnStartup": false,
     "autoDownload": false
   },
+  "deviceEndpoints": [],
   "shellPrograms": [
     "go",
     "git"
@@ -63,6 +64,11 @@
     "backups",
     "tasks",
     "tasks.manage",
-    "database"
+    "database",
+    "printing",
+    "documents",
+    "devices.serial",
+    "devices.network",
+    "devices.print"
   ]
 }

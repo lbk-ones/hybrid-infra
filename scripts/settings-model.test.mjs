@@ -36,6 +36,45 @@ function fixture() {
   };
 }
 
+// 验证启动模式可视化编辑、高级 JSON 校验，以及旧配置缺少字段时继续使用自动模式。
+test("settings window startup modes and legacy defaults", () => {
+  for (const windowState of ["auto", "normal", "maximized", "fullscreen"]) {
+    const config = mergeSettingsDraft({ appId: "test" }, { ...fixture(), windowState }, []);
+    assert.equal(config.windowState, windowState);
+    assert.equal(
+      applySettingsPatch(config, JSON.stringify({ windowState }), "test").windowState,
+      windowState,
+    );
+  }
+  const legacy = mergeSettingsDraft({ appId: "test" }, fixture(), []);
+  assert.equal(legacy.windowState, "auto");
+  delete legacy.windowState;
+  assert.equal(applySettingsPatch(legacy, "{}", "test").windowState, "auto");
+  assert.throws(() => applySettingsPatch(legacy, '{"windowState":"wrong"}', "test"), /windowState/);
+  assert.throws(
+    () => mergeSettingsDraft({}, { ...fixture(), windowState: "wrong" }, []),
+    /windowState/,
+  );
+});
+
+// 验证设备网络白名单可编辑、去重和明确清空；旧表单未包含该字段时不丢失高级配置。
+test("settings preserve and edit device endpoint allowlist", () => {
+  const base = { appId: "device-app", deviceEndpoints: ["192.168.1.10:9100"] };
+  assert.deepEqual(mergeSettingsDraft(base, fixture(), []).deviceEndpoints, base.deviceEndpoints);
+  assert.deepEqual(
+    mergeSettingsDraft(
+      base,
+      { ...fixture(), deviceEndpoints: "127.0.0.1:9100\n127.0.0.1:9100\n192.168.1.20:4001" },
+      [],
+    ).deviceEndpoints,
+    ["127.0.0.1:9100", "192.168.1.20:4001"],
+  );
+  assert.deepEqual(
+    mergeSettingsDraft(base, { ...fixture(), deviceEndpoints: "" }, []).deviceEndpoints,
+    [],
+  );
+});
+
 // 验证可视化保存保留身份和隐藏配置，权限覆盖中的空列表不会被误认为默认授权。
 test("settings form preserves identity and advanced fields and explicit denials", () => {
   const base = { appId: "erp-a", updates: { enabled: true, channel: "stable" } };

@@ -153,6 +153,155 @@ export class BusMessage {
 }
 
 /**
+ * BusinessReport 包含纯文本表格与有界的报表说明，纸张和方向采用固定枚举，不能注入任意 HTML 或 CSS。
+ */
+export class BusinessReport {
+    /**
+     * Creates a new BusinessReport instance.
+     * @param {Partial<BusinessReport>} [$$source = {}] - The source object to create the BusinessReport.
+     */
+    constructor($$source = {}) {
+        if (!("headers" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["headers"] = [];
+        }
+        if (!("rows" in $$source)) {
+            /**
+             * @member
+             * @type {string[][]}
+             */
+            this["rows"] = [];
+        }
+        if (!("warnings" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["warnings"] = [];
+        }
+        if (!("title" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["title"] = "";
+        }
+        if (!("subtitle" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["subtitle"] = "";
+        }
+        if (!("footer" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["footer"] = "";
+        }
+        if (!("paper" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["paper"] = "";
+        }
+        if (!("orientation" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["orientation"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new BusinessReport instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {BusinessReport}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType1;
+        const $$createField1_0 = $$createType2;
+        const $$createField2_0 = $$createType1;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("headers" in $$parsedSource) {
+            $$parsedSource["headers"] = $$createField0_0($$parsedSource["headers"]);
+        }
+        if ("rows" in $$parsedSource) {
+            $$parsedSource["rows"] = $$createField1_0($$parsedSource["rows"]);
+        }
+        if ("warnings" in $$parsedSource) {
+            $$parsedSource["warnings"] = $$createField2_0($$parsedSource["warnings"]);
+        }
+        return new BusinessReport(/** @type {Partial<BusinessReport>} */($$parsedSource));
+    }
+}
+
+/**
+ * BusinessTable 是通用交换表格；所有单元格均为文本，避免自动执行公式或猜测业务字段类型。
+ */
+export class BusinessTable {
+    /**
+     * Creates a new BusinessTable instance.
+     * @param {Partial<BusinessTable>} [$$source = {}] - The source object to create the BusinessTable.
+     */
+    constructor($$source = {}) {
+        if (!("headers" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["headers"] = [];
+        }
+        if (!("rows" in $$source)) {
+            /**
+             * @member
+             * @type {string[][]}
+             */
+            this["rows"] = [];
+        }
+        if (!("warnings" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["warnings"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new BusinessTable instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {BusinessTable}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType1;
+        const $$createField1_0 = $$createType2;
+        const $$createField2_0 = $$createType1;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("headers" in $$parsedSource) {
+            $$parsedSource["headers"] = $$createField0_0($$parsedSource["headers"]);
+        }
+        if ("rows" in $$parsedSource) {
+            $$parsedSource["rows"] = $$createField1_0($$parsedSource["rows"]);
+        }
+        if ("warnings" in $$parsedSource) {
+            $$parsedSource["warnings"] = $$createField2_0($$parsedSource["warnings"]);
+        }
+        return new BusinessTable(/** @type {Partial<BusinessTable>} */($$parsedSource));
+    }
+}
+
+/**
  * CacheValue 包含命中状态和修订号；不存在与 JSON null 分别用 found=false 与 found=true 区分。
  */
 export class CacheValue {
@@ -258,8 +407,8 @@ export class CaptureDisplay {
      * @returns {CaptureDisplay}
      */
     static createFrom($$source = {}) {
-        const $$createField3_0 = $$createType1;
-        const $$createField4_0 = $$createType1;
+        const $$createField3_0 = $$createType3;
+        const $$createField4_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("physical" in $$parsedSource) {
             $$parsedSource["physical"] = $$createField3_0($$parsedSource["physical"]);
@@ -377,7 +526,7 @@ export class CommandInfo {
      * @returns {CommandInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField4_0 = $$createType3;
+        const $$createField4_0 = $$createType5;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("error" in $$parsedSource) {
             $$parsedSource["error"] = $$createField4_0($$parsedSource["error"]);
@@ -447,7 +596,7 @@ export class CommandOptions {
      * @returns {CommandOptions}
      */
     static createFrom($$source = {}) {
-        const $$createField2_0 = $$createType4;
+        const $$createField2_0 = $$createType1;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("args" in $$parsedSource) {
             $$parsedSource["args"] = $$createField2_0($$parsedSource["args"]);
@@ -510,7 +659,7 @@ export class CommandOutput {
      * @returns {CommandOutput}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType5;
+        const $$createField0_0 = $$createType6;
         const $$createField1_0 = $Create.ByteSlice;
         const $$createField2_0 = $Create.ByteSlice;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
@@ -524,6 +673,164 @@ export class CommandOutput {
             $$parsedSource["stderr"] = $$createField2_0($$parsedSource["stderr"]);
         }
         return new CommandOutput(/** @type {Partial<CommandOutput>} */($$parsedSource));
+    }
+}
+
+/**
+ * DeviceConnection 是当前来源与窗口的连接快照，id 是临时凭证，不是操作系统句柄。
+ */
+export class DeviceConnection {
+    /**
+     * Creates a new DeviceConnection instance.
+     * @param {Partial<DeviceConnection>} [$$source = {}] - The source object to create the DeviceConnection.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("kind" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["kind"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("state" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["state"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {Error | null | undefined}
+             */
+            this["error"] = undefined;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DeviceConnection instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DeviceConnection}
+     */
+    static createFrom($$source = {}) {
+        const $$createField4_0 = $$createType5;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("error" in $$parsedSource) {
+            $$parsedSource["error"] = $$createField4_0($$parsedSource["error"]);
+        }
+        return new DeviceConnection(/** @type {Partial<DeviceConnection>} */($$parsedSource));
+    }
+}
+
+/**
+ * DevicePacket 保留读取顺序；data 通过绑定编码为 Base64，SDK 转回字节，不猜测设备的协议和字符集。
+ */
+export class DevicePacket {
+    /**
+     * Creates a new DevicePacket instance.
+     * @param {Partial<DevicePacket>} [$$source = {}] - The source object to create the DevicePacket.
+     */
+    constructor($$source = {}) {
+        if (!("sequence" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["sequence"] = 0;
+        }
+        if (!("data" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["data"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DevicePacket instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DevicePacket}
+     */
+    static createFrom($$source = {}) {
+        const $$createField1_0 = $Create.ByteSlice;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("data" in $$parsedSource) {
+            $$parsedSource["data"] = $$createField1_0($$parsedSource["data"]);
+        }
+        return new DevicePacket(/** @type {Partial<DevicePacket>} */($$parsedSource));
+    }
+}
+
+/**
+ * DeviceRead 一次返回最多 16 个数据块及连接状态；终态中仍会先交付已入队数据，不静默丢包。
+ */
+export class DeviceRead {
+    /**
+     * Creates a new DeviceRead instance.
+     * @param {Partial<DeviceRead>} [$$source = {}] - The source object to create the DeviceRead.
+     */
+    constructor($$source = {}) {
+        if (!("packets" in $$source)) {
+            /**
+             * @member
+             * @type {DevicePacket[]}
+             */
+            this["packets"] = [];
+        }
+        if (!("state" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["state"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {Error | null | undefined}
+             */
+            this["error"] = undefined;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DeviceRead instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DeviceRead}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType8;
+        const $$createField2_0 = $$createType5;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("packets" in $$parsedSource) {
+            $$parsedSource["packets"] = $$createField0_0($$parsedSource["packets"]);
+        }
+        if ("error" in $$parsedSource) {
+            $$parsedSource["error"] = $$createField2_0($$parsedSource["error"]);
+        }
+        return new DeviceRead(/** @type {Partial<DeviceRead>} */($$parsedSource));
     }
 }
 
@@ -698,6 +1005,44 @@ export class DocumentChange {
 }
 
 /**
+ * DocumentExport 返回实际写入的格式和字节数，不把临时路径或整个文件送回网页。
+ */
+export class DocumentExport {
+    /**
+     * Creates a new DocumentExport instance.
+     * @param {Partial<DocumentExport>} [$$source = {}] - The source object to create the DocumentExport.
+     */
+    constructor($$source = {}) {
+        if (!("format" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["format"] = "";
+        }
+        if (!("bytes" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["bytes"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DocumentExport instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DocumentExport}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new DocumentExport(/** @type {Partial<DocumentExport>} */($$parsedSource));
+    }
+}
+
+/**
  * DocumentPage 返回真实总数及下一偏移量；响应接近 512 KiB 时提前结束本页，调用方按 nextOffset 继续取。
  */
 export class DocumentPage {
@@ -744,7 +1089,7 @@ export class DocumentPage {
      * @returns {DocumentPage}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType7;
+        const $$createField0_0 = $$createType10;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("items" in $$parsedSource) {
             $$parsedSource["items"] = $$createField0_0($$parsedSource["items"]);
@@ -814,7 +1159,7 @@ export class DocumentQuery {
      * @returns {DocumentQuery}
      */
     static createFrom($$source = {}) {
-        const $$createField1_0 = $$createType8;
+        const $$createField1_0 = $$createType11;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("where" in $$parsedSource) {
             $$parsedSource["where"] = $$createField1_0($$parsedSource["where"]);
@@ -898,7 +1243,7 @@ export class DownloadInfo {
      * @returns {DownloadInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField6_0 = $$createType3;
+        const $$createField6_0 = $$createType5;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("error" in $$parsedSource) {
             $$parsedSource["error"] = $$createField6_0($$parsedSource["error"]);
@@ -1166,7 +1511,7 @@ export class ManagedTask {
      * @returns {ManagedTask}
      */
     static createFrom($$source = {}) {
-        const $$createField6_0 = $$createType3;
+        const $$createField6_0 = $$createType5;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("error" in $$parsedSource) {
             $$parsedSource["error"] = $$createField6_0($$parsedSource["error"]);
@@ -1340,12 +1685,85 @@ export class ScreenshotResult {
      * @returns {ScreenshotResult}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType1;
+        const $$createField0_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("region" in $$parsedSource) {
             $$parsedSource["region"] = $$createField0_0($$parsedSource["region"]);
         }
         return new ScreenshotResult(/** @type {Partial<ScreenshotResult>} */($$parsedSource));
+    }
+}
+
+/**
+ * SerialOptions 明确串口通信参数；DTR/RTS 默认关闭，打开真实设备仍可能受驱动影响产生短脉冲。
+ */
+export class SerialOptions {
+    /**
+     * Creates a new SerialOptions instance.
+     * @param {Partial<SerialOptions>} [$$source = {}] - The source object to create the SerialOptions.
+     */
+    constructor($$source = {}) {
+        if (!("port" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["port"] = "";
+        }
+        if (!("baudRate" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["baudRate"] = 0;
+        }
+        if (!("dataBits" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["dataBits"] = 0;
+        }
+        if (!("parity" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["parity"] = "";
+        }
+        if (!("stopBits" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["stopBits"] = "";
+        }
+        if (!("dtr" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["dtr"] = false;
+        }
+        if (!("rts" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["rts"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SerialOptions instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {SerialOptions}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new SerialOptions(/** @type {Partial<SerialOptions>} */($$parsedSource));
     }
 }
 
@@ -1438,10 +1856,10 @@ export class SettingsSnapshot {
      * @returns {SettingsSnapshot}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType10;
-        const $$createField1_0 = $$createType10;
-        const $$createField2_0 = $$createType11;
-        const $$createField9_0 = $$createType4;
+        const $$createField0_0 = $$createType13;
+        const $$createField1_0 = $$createType13;
+        const $$createField2_0 = $$createType14;
+        const $$createField9_0 = $$createType1;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("active" in $$parsedSource) {
             $$parsedSource["active"] = $$createField0_0($$parsedSource["active"]);
@@ -1666,6 +2084,13 @@ export class WindowInfo {
              */
             this["maximised"] = false;
         }
+        if (!("fullscreen" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["fullscreen"] = false;
+        }
         if (!("bounds" in $$source)) {
             /**
              * @member
@@ -1697,14 +2122,14 @@ export class WindowInfo {
      * @returns {WindowInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField5_0 = $$createType12;
-        const $$createField7_0 = $$createType3;
+        const $$createField6_0 = $$createType15;
+        const $$createField8_0 = $$createType5;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("bounds" in $$parsedSource) {
-            $$parsedSource["bounds"] = $$createField5_0($$parsedSource["bounds"]);
+            $$parsedSource["bounds"] = $$createField6_0($$parsedSource["bounds"]);
         }
         if ("error" in $$parsedSource) {
-            $$parsedSource["error"] = $$createField7_0($$parsedSource["error"]);
+            $$parsedSource["error"] = $$createField8_0($$parsedSource["error"]);
         }
         return new WindowInfo(/** @type {Partial<WindowInfo>} */($$parsedSource));
     }
@@ -1712,15 +2137,18 @@ export class WindowInfo {
 
 // Private type creation functions
 const $$createType0 = $Create.Map($Create.Any, $Create.Any);
-const $$createType1 = CaptureRegion.createFrom;
-const $$createType2 = Error.createFrom;
-const $$createType3 = $Create.Nullable($$createType2);
-const $$createType4 = $Create.Array($Create.Any);
-const $$createType5 = CommandInfo.createFrom;
-const $$createType6 = Document.createFrom;
-const $$createType7 = $Create.Array($$createType6);
-const $$createType8 = $Create.Map($Create.Any, $Create.Any);
-const $$createType9 = setting$0.PkgInfo.createFrom;
-const $$createType10 = $Create.Nullable($$createType9);
-const $$createType11 = Preferences.createFrom;
-const $$createType12 = application$0.Rect.createFrom;
+const $$createType1 = $Create.Array($Create.Any);
+const $$createType2 = $Create.Array($$createType1);
+const $$createType3 = CaptureRegion.createFrom;
+const $$createType4 = Error.createFrom;
+const $$createType5 = $Create.Nullable($$createType4);
+const $$createType6 = CommandInfo.createFrom;
+const $$createType7 = DevicePacket.createFrom;
+const $$createType8 = $Create.Array($$createType7);
+const $$createType9 = Document.createFrom;
+const $$createType10 = $Create.Array($$createType9);
+const $$createType11 = $Create.Map($Create.Any, $Create.Any);
+const $$createType12 = setting$0.PkgInfo.createFrom;
+const $$createType13 = $Create.Nullable($$createType12);
+const $$createType14 = Preferences.createFrom;
+const $$createType15 = application$0.Rect.createFrom;

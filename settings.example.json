@@ -10,6 +10,7 @@
   "pageMode": "builtin",
   "debug": false,
   "frameless": false,
+  "windowState": "auto",
   "width": 1280,
   "height": 800,
   "minWidth": 800,
@@ -39,7 +40,12 @@
     "updates",
     "tasks",
     "tasks.manage",
-    "database"
+    "database",
+    "documents",
+    "printing",
+    "devices.serial",
+    "devices.network",
+    "devices.print"
   ],
   "updates": {
     "enabled": false,
@@ -50,5 +56,6 @@
     "autoDownload": false
   },
   "shellPrograms": ["go", "git"],
-  "logLevel": 0
+  "logLevel": 0,
+  "deviceEndpoints": []
 }

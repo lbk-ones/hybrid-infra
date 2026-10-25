@@ -80,6 +80,14 @@ export class PkgInfo {
              */
             this["updates"] = (new UpdateConfig());
         }
+        if (!("deviceEndpoints" in $$source)) {
+            /**
+             * 网络设备 IP:端口白名单；不解析域名，默认不允许任何 TCP 设备。
+             * @member
+             * @type {string[]}
+             */
+            this["deviceEndpoints"] = [];
+        }
         if (!("shellPrograms" in $$source)) {
             /**
              * 允许程序模式执行的程序；启动时解析为固定绝对路径，默认空列表。
@@ -131,6 +139,14 @@ export class PkgInfo {
              * @type {boolean}
              */
             this["frameless"] = false;
+        }
+        if (!("windowState" in $$source)) {
+            /**
+             * 主窗口启动模式：auto 跟随记忆，normal 普通，maximized 最大化，fullscreen 全屏。
+             * @member
+             * @type {string}
+             */
+            this["windowState"] = "";
         }
         if (!("width" in $$source)) {
             /**
@@ -256,10 +272,11 @@ export class PkgInfo {
         const $$createField2_0 = $$createType0;
         const $$createField3_0 = $$createType1;
         const $$createField4_0 = $$createType2;
-        const $$createField14_0 = $$createType2;
-        const $$createField22_0 = $$createType2;
-        const $$createField24_0 = $$createType3;
-        const $$createField25_0 = $$createType2;
+        const $$createField5_0 = $$createType2;
+        const $$createField16_0 = $$createType2;
+        const $$createField24_0 = $$createType2;
+        const $$createField26_0 = $$createType3;
+        const $$createField27_0 = $$createType2;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("icons" in $$parsedSource) {
             $$parsedSource["icons"] = $$createField2_0($$parsedSource["icons"]);
@@ -267,20 +284,23 @@ export class PkgInfo {
         if ("updates" in $$parsedSource) {
             $$parsedSource["updates"] = $$createField3_0($$parsedSource["updates"]);
         }
+        if ("deviceEndpoints" in $$parsedSource) {
+            $$parsedSource["deviceEndpoints"] = $$createField4_0($$parsedSource["deviceEndpoints"]);
+        }
         if ("shellPrograms" in $$parsedSource) {
-            $$parsedSource["shellPrograms"] = $$createField4_0($$parsedSource["shellPrograms"]);
+            $$parsedSource["shellPrograms"] = $$createField5_0($$parsedSource["shellPrograms"]);
         }
         if ("allowedOrigins" in $$parsedSource) {
-            $$parsedSource["allowedOrigins"] = $$createField14_0($$parsedSource["allowedOrigins"]);
+            $$parsedSource["allowedOrigins"] = $$createField16_0($$parsedSource["allowedOrigins"]);
         }
         if ("navigationOrigins" in $$parsedSource) {
-            $$parsedSource["navigationOrigins"] = $$createField22_0($$parsedSource["navigationOrigins"]);
+            $$parsedSource["navigationOrigins"] = $$createField24_0($$parsedSource["navigationOrigins"]);
         }
         if ("permissions" in $$parsedSource) {
-            $$parsedSource["permissions"] = $$createField24_0($$parsedSource["permissions"]);
+            $$parsedSource["permissions"] = $$createField26_0($$parsedSource["permissions"]);
         }
         if ("desktopCapabilities" in $$parsedSource) {
-            $$parsedSource["desktopCapabilities"] = $$createField25_0($$parsedSource["desktopCapabilities"]);
+            $$parsedSource["desktopCapabilities"] = $$createField27_0($$parsedSource["desktopCapabilities"]);
         }
         return new PkgInfo(/** @type {Partial<PkgInfo>} */($$parsedSource));
     }

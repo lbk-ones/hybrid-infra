@@ -64,10 +64,19 @@
                   权限，也可手动填写。</small
                 ></label
               >
-              <label>宽度<input name="width" type="number" min="0" /></label
+              <label
+                >启动窗口模式<select name="windowState">
+                  <option value="auto">自动（跟随上次记忆）</option>
+                  <option value="normal">普通窗口</option>
+                  <option value="maximized">最大化（保留任务栏）</option>
+                  <option value="fullscreen">全屏（占满屏幕）</option></select
+                ><small>保存并重启后生效；F11 可切换全屏。指定模式优先于窗口记忆。</small></label
+              >
+              <label>普通窗口宽度<input name="width" type="number" min="0" /></label
               ><label
-                >高度<input name="height" type="number" min="0" /><small
-                  >宽高任一为 0 时按最大化启动。</small
+                >普通窗口高度<input name="height" type="number" min="0" /><small
+                  >用于普通窗口；自动模式无记忆且宽高任一为 0
+                  时最大化启动。全屏和最大化会保留普通窗口的恢复尺寸。</small
                 ></label
               >
               <label>最小宽度<input name="minWidth" type="number" min="320" /></label
@@ -92,7 +101,9 @@
               <label><input name="splashEnabled" type="checkbox" />启用启动屏</label>
               <label><input name="singleInstance" type="checkbox" />单实例运行</label>
               <label><input name="trayEnabled" type="checkbox" />启用托盘</label>
-              <label><input name="rememberWindows" type="checkbox" />记住窗口位置</label>
+              <label
+                ><input name="rememberWindows" type="checkbox" />记住窗口位置、尺寸和显示状态</label
+              >
               <label><input name="frameless" type="checkbox" />无边框窗口</label>
               <label><input name="debug" type="checkbox" />启用项目调试快捷键</label>
             </div>
@@ -133,6 +144,16 @@
                 ></textarea>
               </label>
               <label
+                >网络设备白名单<textarea
+                  name="deviceEndpoints"
+                  rows="3"
+                  placeholder="每行一个字面 IP:端口，例如 192.168.1.50:9100"
+                ></textarea
+                ><small
+                  >还需 devices.network 权限，保存并重启后生效；不会自动探测或发送数据。</small
+                ></label
+              >
+              <label
                 >Shell 程序白名单<textarea
                   name="shellPrograms"
                   rows="3"
@@ -168,6 +189,8 @@
           <footer class="settings-save">
             <span id="settings-restart"></span>
             <div>
+              <button id="restart-app" type="button">重启应用</button
+              ><button id="save-restart-app" type="button">保存并重启</button>
               <button id="reload-settings" type="button">重新读取磁盘</button
               ><button id="save-settings" class="primary" type="submit">
                 保存配置（重启生效）

@@ -5,6 +5,7 @@ export const textSettings = [
   "pageMode",
   "closeBehavior",
   "externalLinks",
+  "windowState",
 ];
 export const numberSettings = ["width", "height", "minWidth", "minHeight", "loadTimeoutSeconds"];
 export const booleanSettings = [
@@ -31,7 +32,9 @@ export function settingsLines(value) {
 /** 将可视化字段合并到完整配置，保留未显示的更新等设置；身份由发布配置决定，不能在运行中变更。 */
 export function mergeSettingsDraft(base, values, permissionRows) {
   const result = structuredClone(base);
-  for (const name of textSettings) result[name] = values[name].trim();
+  for (const name of textSettings)
+    result[name] = (values[name] ?? (name === "windowState" ? base[name] || "auto" : "")).trim();
+  validateWindowState(result.windowState);
   for (const name of booleanSettings) result[name] = Boolean(values[name]);
   for (const name of numberSettings) {
     const raw = values[name];
@@ -41,8 +44,8 @@ export function mergeSettingsDraft(base, values, permissionRows) {
     result[name] = number;
   }
   if (result.pageMode !== "local") result.localRoot = "";
-  for (const name of ["allowedOrigins", "navigationOrigins", "shellPrograms"]) {
-    const items = settingsLines(values[name]);
+  for (const name of ["allowedOrigins", "navigationOrigins", "shellPrograms", "deviceEndpoints"]) {
+    const items = settingsLines(values[name] ?? (base[name] || []).join("\n"));
     result[name] = !items.length && base[name] == null ? base[name] : items;
   }
   result.icons = { application: values.iconApplication.trim(), tray: values.iconTray.trim() };
@@ -80,9 +83,11 @@ export function applySettingsPatch(base, text, identity) {
   if (!patch || typeof patch !== "object" || Array.isArray(patch))
     throw new Error("请填写 JSON 对象");
   const next = { ...structuredClone(base), ...patch };
+  if (next.windowState == null && !Object.hasOwn(patch, "windowState")) next.windowState = "auto";
   if (next.appId !== identity) throw new Error("appId 是发布身份，不能在配置中心更换");
   for (const name of textSettings)
     if (typeof next[name] !== "string") throw new Error(`${name} 必须是字符串`);
+  validateWindowState(next.windowState);
   for (const name of booleanSettings)
     if (typeof next[name] !== "boolean") throw new Error(`${name} 必须是 true 或 false`);
   for (const name of numberSettings)
@@ -118,6 +123,12 @@ export function applySettingsPatch(base, text, identity) {
   )
     throw new Error("icons 必须包含字符串图标地址");
   return next;
+}
+
+/** 检查启动模式，避免拼写错误被当成普通窗口保存；auto 会跟随上次记住的模式。 */
+function validateWindowState(value) {
+  if (!["auto", "normal", "maximized", "fullscreen"].includes(value))
+    throw new Error("windowState 请选择自动、普通窗口、最大化或全屏");
 }
 
 /** 对比配置的顶层字段，标出尚未保存或等待重启的具体项目，不修改输入对象。 */

@@ -95,6 +95,8 @@ try {
     "shell-client.js",
     "ui-client.js",
     "tasks-client.js",
+    "documents-client.js",
+    "devices-client.js",
   ])
     await cp(path.join(root, "frontend/src", filename), path.join(output, filename));
   await writeFile(

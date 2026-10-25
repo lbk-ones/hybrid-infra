@@ -44,6 +44,13 @@ func main() {
 		}
 		return
 	}
+	if handled, err := host.RunRestartWorker(os.Args[1:]); handled {
+		if err != nil {
+			log.Print(err)
+			os.Exit(1)
+		}
+		return
+	}
 	config, err := setting.New().Parse()
 	if err != nil {
 		log.Fatal(err)

@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>设备接入中心 · Hybrid</title>
+    <link rel="stylesheet" href="/shell.css" />
+    <link rel="stylesheet" href="/devices.css" />
+  </head>
+  <body class="devices-page">
+    <header>
+      <div>
+        <p class="eyebrow">HYBRID / DEVICES</p>
+        <h1>设备接入中心</h1>
+        <p>串口、扫码、称重与标签指令，共用可回收的连接和数据回调。</p>
+      </div>
+      <nav>
+        <a href="/shell/docs.html#device-serial">开发文档</a
+        ><a href="/shell/settings.html">配置中心</a><a href="/">工作台 ↗</a>
+      </nav>
+    </header>
+    <main>
+      <p id="notice" role="status" aria-live="polite">正在连接宿主…</p>
+      <div class="device-grid">
+        <section>
+          <p class="eyebrow">01 / SERIAL & TCP</p>
+          <h2>串口与网络设备</h2>
+          <div class="actions">
+            <label
+              >串口<select id="port">
+                <option value="">先枚举串口</option>
+              </select></label
+            ><button id="ports">枚举串口</button>
+          </div>
+          <div class="fields">
+            <label>波特率<input id="baud" type="number" value="9600" /></label
+            ><label
+              >数据位<select id="bits">
+                <option>8</option>
+                <option>7</option>
+                <option>6</option>
+                <option>5</option>
+              </select></label
+            ><label
+              >校验位<select id="parity">
+                <option value="none">无</option>
+                <option value="even">偶校验</option>
+                <option value="odd">奇校验</option>
+                <option value="mark">mark</option>
+                <option value="space">space</option>
+              </select></label
+            ><label
+              >停止位<select id="stop">
+                <option>1</option>
+                <option>1.5</option>
+                <option>2</option>
+              </select></label
+            >
+          </div>
+          <div class="actions">
+            <label class="check"><input id="dtr" type="checkbox" />DTR</label
+            ><label class="check"><input id="rts" type="checkbox" />RTS</label
+            ><button id="serial-open" class="primary">打开串口</button>
+          </div>
+          <p class="hint">
+            适用于串口扫码枪、电子秤和打印机。请按说明书设置参数；打开串口本身可能改变设备控制线。
+          </p>
+          <label>TCP 设备地址<input id="endpoint" placeholder="192.168.1.50:9100" /></label>
+          <div class="actions"><button id="tcp-open">连接网络设备</button></div>
+          <p class="hint">
+            地址必须列入配置中心的 deviceEndpoints
+            白名单，需保存并重启。不扫描网络，不自动发送任何探测指令。
+          </p>
+        </section>
+        <section>
+          <p class="eyebrow">02 / RECEIVE & SEND</p>
+          <h2>连接与数据监视</h2>
+          <div class="actions">
+            <label
+              >当前连接<select id="connection">
+                <option value="">尚未连接</option>
+              </select></label
+            ><button id="connections">刷新连接</button>
+          </div>
+          <div class="fields">
+            <label
+              >接收方式<select id="receive-mode">
+                <option value="lines">按行文本</option>
+                <option value="text">连续文本</option>
+                <option value="bytes">十六进制字节</option>
+              </select></label
+            ><label
+              >字符集<select id="encoding">
+                <option value="utf-8">UTF-8</option>
+                <option value="gbk">GBK</option>
+                <option value="gb18030">GB18030</option>
+              </select></label
+            >
+          </div>
+          <div class="actions">
+            <button id="listen">开始监听</button><button id="stop-listen">停止监听</button
+            ><button id="close">关闭并移除连接</button>
+          </div>
+          <pre id="received">等待设备数据…</pre>
+          <label
+            >发送数据<textarea
+              id="payload"
+              rows="3"
+              placeholder="按设备协议填写，不会自动发送"
+            ></textarea>
+          </label>
+          <div class="actions">
+            <label
+              >数据格式<select id="send-mode">
+                <option value="text">UTF-8 文本</option>
+                <option value="hex">十六进制</option>
+              </select></label
+            ><button id="send" class="primary">发送到当前设备</button>
+          </div>
+          <p class="hint">
+            每次最多 64
+            KiB。超时或取消无法撤回已发送字节，不自动重试。监听停止后请关闭闲置连接，失联一分钟自动释放。
+          </p>
+        </section>
+        <section>
+          <p class="eyebrow">03 / SCANNER & SCALE</p>
+          <h2>扫码枪与电子秤</h2>
+          <label
+            >USB 键盘扫码区<input
+              id="scan-input"
+              autocomplete="off"
+              placeholder="开始监听后聚焦这里扫码，以 Enter 结束"
+          /></label>
+          <div class="actions">
+            <button id="scanner-start">监听键盘扫码</button
+            ><button id="scanner-stop">停止扫码监听</button>
+          </div>
+          <output id="scan-result">尚未收到条码</output>
+          <p class="hint">
+            识别快速连续按键加 Enter，默认至少 3 个字符、间隔不超过 50
+            ms。普通快速打字也可能匹配；不是 USB HID 底层识别。串口扫码枪使用上面的按行监听。
+          </p>
+          <label>文本秤帧<input id="weight-frame" value="ST,GS,+0012.340kg" /></label>
+          <div class="actions"><button id="weight-parse">解析秤帧示例</button></div>
+          <pre id="weight-result">
+支持常见 ST/US、GS/NT 和 kg/g/lb/t 文本；未知品牌协议由业务自行解析。</pre
+          >
+        </section>
+        <section>
+          <p class="eyebrow">04 / RAW LABEL PRINT</p>
+          <h2>标签打印机</h2>
+          <div class="actions">
+            <label
+              >已安装打印机<select id="printer">
+                <option value="">先枚举打印机</option>
+              </select></label
+            ><button id="printers">枚举打印机</button>
+          </div>
+          <label>任务名称<input id="print-title" value="业务标签" /></label
+          ><label
+            >原始指令<textarea
+              id="print-data"
+              rows="4"
+              placeholder="按打印机支持的 ZPL、TSPL 或 ESC/POS 协议填写"
+            ></textarea>
+          </label>
+          <div class="actions">
+            <label
+              >指令格式<select id="print-mode">
+                <option value="text">UTF-8 文本</option>
+                <option value="hex">十六进制</option>
+              </select></label
+            ><button id="label-sample">填入 ZPL 示例（不发送）</button
+            ><button id="raw-print" class="primary">提交真实 RAW 打印</button>
+          </div>
+          <p class="hint">
+            系统 RAW 打印当前支持 Windows。网络标签机可用 TCP，串口标签机可用串口发送。返回作业 ID
+            只表示提交后台，不代表出纸；中文编码、纸张尺寸和设备语言需按实际型号设置。
+          </p>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="/src/shell-devices.js"></script>
+  </body>
+</html>

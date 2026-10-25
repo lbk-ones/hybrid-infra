@@ -143,6 +143,7 @@ func (c *Controller) InstallSplash() {
 	screen.reveal = func() {
 		application.InvokeAsync(func() {
 			if !c.quitting.Load() {
+				c.restoreMainStart(true)
 				if main := c.getEntry("main-window"); main != nil {
 					wake(main.window)
 				}

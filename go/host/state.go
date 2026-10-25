@@ -10,8 +10,41 @@ import (
 
 // WindowState 是需要写入磁盘的最小窗口状态，不保存页面内容、任务或访问权限。
 type WindowState struct {
-	Bounds    application.Rect `json:"bounds"`
-	Maximised bool             `json:"maximised"`
+	Bounds     application.Rect `json:"bounds"`
+	Maximised  bool             `json:"maximised"`
+	Fullscreen bool             `json:"fullscreen,omitempty"`
+}
+
+// windowRestorePlan 将普通矩形和显示模式分开恢复；显式启动模式优先于记忆，旧记录缺少全屏字段时按普通/最大化兼容。
+func windowRestorePlan(mode string, width, height, minWidth, minHeight int, saved WindowState, remember bool, areas []application.Rect) (WindowState, application.WindowState) {
+	start := application.WindowStateNormal
+	if width <= 0 || height <= 0 {
+		width, height = 1280, 800
+		start = application.WindowStateMaximised
+	}
+	normal := application.Rect{Width: max(width, minWidth), Height: max(height, minHeight)}
+	if remember {
+		if saved.Bounds.Width > 0 && saved.Bounds.Height > 0 {
+			normal = saved.Bounds
+		}
+		if saved.Fullscreen {
+			start = application.WindowStateFullscreen
+		} else if saved.Maximised {
+			start = application.WindowStateMaximised
+		} else {
+			start = application.WindowStateNormal
+		}
+	}
+	switch mode {
+	case "normal":
+		start = application.WindowStateNormal
+	case "maximized":
+		start = application.WindowStateMaximised
+	case "fullscreen":
+		start = application.WindowStateFullscreen
+	}
+	normal = FitBounds(normal, areas, minWidth, minHeight)
+	return WindowState{Bounds: normal, Maximised: start == application.WindowStateMaximised, Fullscreen: start == application.WindowStateFullscreen}, start
 }
 
 // stateStore 管理窗口状态的内存副本及 JSON 文件，使用互斥锁避免并发保存相互覆盖。

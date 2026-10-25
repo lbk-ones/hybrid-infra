@@ -5,6 +5,8 @@
 import * as CacheService from "./cacheservice.js";
 import * as DatabaseService from "./databaseservice.js";
 import * as DesktopService from "./desktopservice.js";
+import * as DeviceService from "./deviceservice.js";
+import * as DocumentService from "./documentservice.js";
 import * as EventService from "./eventservice.js";
 import * as GreetService from "./greetservice.js";
 import * as HostService from "./hostservice.js";
@@ -17,6 +19,8 @@ export {
     CacheService,
     DatabaseService,
     DesktopService,
+    DeviceService,
+    DocumentService,
     EventService,
     GreetService,
     HostService,

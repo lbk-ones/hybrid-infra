@@ -30,14 +30,15 @@ var validID = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]{0,79}$`)
 
 // WindowInfo 是返回给前端的窗口快照，包含窗口身份、原生尺寸和页面加载状态。
 type WindowInfo struct {
-	ID        string           `json:"id"`
-	Title     string           `json:"title"`
-	URL       string           `json:"url"`
-	Visible   bool             `json:"visible"`
-	Maximised bool             `json:"maximised"`
-	Bounds    application.Rect `json:"bounds"`
-	Status    string           `json:"status"`
-	Error     *Error           `json:"error,omitempty"`
+	ID         string           `json:"id"`
+	Title      string           `json:"title"`
+	URL        string           `json:"url"`
+	Visible    bool             `json:"visible"`
+	Maximised  bool             `json:"maximised"`
+	Fullscreen bool             `json:"fullscreen"`
+	Bounds     application.Rect `json:"bounds"`
+	Status     string           `json:"status"`
+	Error      *Error           `json:"error,omitempty"`
 }
 
 // entry 保存一个窗口的内部管理状态，不直接暴露给前端。
@@ -78,6 +79,8 @@ type Controller struct {
 	sequence          atomic.Uint64
 	quitting          atomic.Bool
 	promptOpen        atomic.Bool
+	mainStartPending  atomic.Bool // 原生窗口先定位，再应用启动模式；期间不把过渡普通状态写入记忆。
+	mainStartState    application.WindowState
 	tray              *application.SystemTray
 	trayStatus        *application.MenuItem
 	trayTasks         int
@@ -105,7 +108,10 @@ func (c *Controller) AttachTaskCenter(center *TaskCenter) {
 // Attach 绑定 Wails 应用，监听启动、显示器变化和系统唤醒事件；应用退出时停止加载计时器并保存窗口状态。
 func (c *Controller) Attach(app *application.App) {
 	c.app = app
-	app.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) { c.clampAll() })
+	app.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) {
+		c.restoreMainStart(false)
+		c.clampAll()
+	})
 	app.Event.OnApplicationEvent(events.Mac.ApplicationDidChangeScreenParameters, func(*application.ApplicationEvent) { c.clampAll() })
 	app.Event.OnApplicationEvent(events.Common.SystemDidWake, func(*application.ApplicationEvent) { c.clampAll() })
 	app.OnShutdown(func() {
@@ -176,7 +182,10 @@ func (c *Controller) Environment(ctx context.Context) EnvironmentInfo {
 
 // areas 读取所有显示器的有效工作区，并把主显示器排在最前；恢复窗口时用它作为位置回退区域。
 func (c *Controller) areas() []application.Rect {
-	screens := c.app.Screen.GetAll()
+	if c.app == nil {
+		return nil
+	}
+	screens := append([]*application.Screen(nil), c.app.Screen.GetAll()...)
 	result := make([]application.Rect, 0, len(screens))
 	// 原来使用的显示器都不存在时，优先把窗口移回主显示器。
 	sort.SliceStable(screens, func(i, j int) bool { return screens[i].IsPrimary && !screens[j].IsPrimary })
@@ -188,34 +197,34 @@ func (c *Controller) areas() []application.Rect {
 	return result
 }
 
-// InitialOptions 生成主窗口的启动参数，优先恢复记住的位置、尺寸和最大化状态，同时配置最小尺寸及调试快捷键。
+// InitialOptions 先创建普通主窗口并恢复安全矩形；启动模式交给 restoreMainStart，避开 Wails 先全屏再设置旧坐标造成的偏移。
 func (c *Controller) InitialOptions() application.WebviewWindowOptions {
-	width, height := c.config.Width, c.config.Height
-	state := application.WindowStateMaximised
-	if width > 0 && height > 0 {
-		state = application.WindowStateNormal
-	} else {
-		width, height = 1280, 800
-	}
-	options := application.WebviewWindowOptions{Name: "main-window", Title: c.config.Title, Width: max(width, c.config.MinWidth), Height: max(height, c.config.MinHeight), MinWidth: c.config.MinWidth, MinHeight: c.config.MinHeight, Frameless: c.config.Frameless, StartState: state, URL: StatusPage, BackgroundColour: application.NewRGB(246, 248, 247), Permissions: webPermissions()}
+	saved, ok := c.store.get("main-window")
+	restore, state := windowRestorePlan(c.config.WindowState, c.config.Width, c.config.Height, c.config.MinWidth, c.config.MinHeight, saved, ok && c.config.RememberWindows, c.areas())
+	c.mainStartState = state
+	c.mainStartPending.Store(true)
+	options := application.WebviewWindowOptions{Name: "main-window", Title: c.config.Title, Width: restore.Bounds.Width, Height: restore.Bounds.Height, MinWidth: min(c.config.MinWidth, restore.Bounds.Width), MinHeight: min(c.config.MinHeight, restore.Bounds.Height), Frameless: c.config.Frameless, StartState: application.WindowStateNormal, URL: StatusPage, BackgroundColour: application.NewRGB(246, 248, 247), Permissions: webPermissions()}
 	options.Hidden = c.config.SplashEnabled
 	if !c.config.SplashEnabled {
 		options.URL = StatusPage + "?startup=quiet"
 	}
-	if saved, ok := c.store.get("main-window"); ok && c.config.RememberWindows {
-		options.Width = max(saved.Bounds.Width, c.config.MinWidth)
-		options.Height = max(saved.Bounds.Height, c.config.MinHeight)
-		options.X = saved.Bounds.X
-		options.Y = saved.Bounds.Y
+	if ok && c.config.RememberWindows {
+		options.X = restore.Bounds.X
+		options.Y = restore.Bounds.Y
 		options.InitialPosition = application.WindowXY
-		options.StartState = application.WindowStateNormal
-		if saved.Maximised {
-			options.StartState = application.WindowStateMaximised
-		}
 	}
 	options.KeyBindings = map[string]func(application.Window){
 		"F5":      func(w application.Window) { c.retryFromUI(w) },
 		"ctrl+f5": func(w application.Window) { c.retryFromUI(w) },
+		// 进入全屏前先保存普通矩形，F11 再次按下时恢复原窗口。
+		"F11": func(w application.Window) {
+			if w.IsFullscreen() {
+				w.UnFullscreen()
+			} else {
+				c.capture(w.Name())
+				w.Fullscreen()
+			}
+		},
 		"F12": func(w application.Window) {
 			if c.config.Debug {
 				w.OpenDevTools()
@@ -223,6 +232,40 @@ func (c *Controller) InitialOptions() application.WebviewWindowOptions {
 		},
 	}
 	return options
+}
+
+// restoreMainStart 等原生窗口定位完成后再应用启动模式；启用启动屏时延迟到交接显示，避免全屏提前盖住启动屏。
+func (c *Controller) restoreMainStart(reveal bool) {
+	if !c.mainStartPending.Load() || c.config.SplashEnabled && !reveal && (c.splash == nil || !c.splash.inactive()) {
+		return
+	}
+	e := c.getEntry("main-window")
+	if e == nil {
+		return
+	}
+	// 几何修正和模式应用放在同一 UI 回合，异步窗口事件不能插入一半新、一半旧的启动状态。
+	application.InvokeSync(func() {
+		if !c.mainStartPending.Load() {
+			return
+		}
+		// ApplicationStarted 可能早于异步创建原生窗口；此时不能调用 Fullscreen，否则 Wails 会改回有问题的 StartState 路径。
+		if e.window.NativeWindow() == nil {
+			return
+		}
+		c.clampOne(e)
+		normal := e.window.Bounds()
+		c.mu.Lock()
+		e.normal = normal
+		c.mu.Unlock()
+		c.mainStartPending.Store(false)
+		switch c.mainStartState {
+		case application.WindowStateMaximised:
+			e.window.Maximise()
+		case application.WindowStateFullscreen:
+			e.window.Fullscreen()
+		}
+		c.capture("main-window")
+	})
 }
 
 // webPermissions 设置网页请求摄像头、麦克风等系统能力时使用平台默认处理方式；这与 Go 服务的能力授权相互独立。
@@ -263,13 +306,21 @@ func (c *Controller) track(w application.Window, options utils.NewWindowOptions,
 		e.status = "starting"
 	}
 	e.normal = application.Rect{Width: max(options.Width, 800), Height: max(options.Height, 600)}
-	if saved, ok := c.store.get(w.Name()); ok {
-		e.normal = saved.Bounds
+	if saved, ok := c.store.get(w.Name()); ok && remember && c.config.RememberWindows && saved.Bounds.Width > 0 && saved.Bounds.Height > 0 {
+		e.normal = FitBounds(saved.Bounds, c.areas(), 320, 240)
+	}
+	if w.Name() == "main-window" {
+		saved, ok := c.store.get(w.Name())
+		restore, _ := windowRestorePlan(c.config.WindowState, c.config.Width, c.config.Height, c.config.MinWidth, c.config.MinHeight, saved, ok && c.config.RememberWindows, c.areas())
+		e.normal = restore.Bounds
 	}
 	c.mu.Lock()
 	c.windows[w.Name()] = e
 	c.mu.Unlock()
 	w.OnWindowEvent(events.Common.WindowRuntimeReady, func(*application.WindowEvent) {
+		if w.Name() == "main-window" {
+			c.restoreMainStart(false)
+		}
 		if c.icons != nil {
 			c.icons.ApplyWindow(w)
 		}
@@ -290,11 +341,15 @@ func (c *Controller) track(w application.Window, options utils.NewWindowOptions,
 	for _, event := range []events.WindowEventType{events.Windows.WebViewNavigationCompleted, events.Mac.WebViewDidFinishNavigation, events.Linux.WindowLoadFinished} {
 		w.OnWindowEvent(event, func(*application.WindowEvent) { w.ExecJS(guardScript) })
 	}
-	for _, event := range []events.WindowEventType{events.Common.WindowDidMove, events.Common.WindowDidResize, events.Common.WindowMaximise, events.Common.WindowUnMaximise, events.Common.WindowDPIChanged} {
+	for _, event := range []events.WindowEventType{events.Common.WindowDidMove, events.Common.WindowDidResize, events.Common.WindowMaximise, events.Common.WindowUnMaximise, events.Common.WindowFullscreen, events.Common.WindowUnFullscreen, events.Common.WindowRestore, events.Common.WindowDPIChanged} {
 		w.OnWindowEvent(event, func(*application.WindowEvent) {
-			c.capture(w.Name())
-			if event == events.Common.WindowDPIChanged {
+			if w.Name() == "main-window" {
+				c.restoreMainStart(false)
+			}
+			if event == events.Common.WindowDPIChanged || event == events.Common.WindowUnFullscreen || event == events.Common.WindowUnMaximise || event == events.Common.WindowRestore {
 				c.clampOne(e)
+			} else {
+				c.capture(w.Name())
 			}
 		})
 	}
@@ -341,7 +396,7 @@ func (c *Controller) track(w application.Window, options utils.NewWindowOptions,
 	})
 }
 
-// capture 把指定窗口的当前位置和最大化状态记录到内存；最小化、全屏或最大化时保留之前的普通窗口尺寸。
+// capture 在同一次 UI 线程采样中读取模式和尺寸，避免全屏/最大化切换时拼接旧坐标与新尺寸；只更新普通矩形，最小化不覆盖已记住的模式。
 func (c *Controller) capture(id string) {
 	c.mu.RLock()
 	e := c.windows[id]
@@ -349,27 +404,39 @@ func (c *Controller) capture(id string) {
 	if e == nil || !e.remember || !c.config.RememberWindows {
 		return
 	}
-	maximised := e.window.IsMaximised()
-	if !maximised && !e.window.IsMinimised() && !e.window.IsFullscreen() {
-		bounds := e.window.Bounds()
-		if bounds.Width > 0 && bounds.Height > 0 {
-			c.mu.Lock()
-			e.normal = bounds
-			c.mu.Unlock()
-		}
+	if id == "main-window" && c.mainStartPending.Load() {
+		return
 	}
-	c.mu.RLock()
-	normal := e.normal
-	c.mu.RUnlock()
-	c.store.put(id, WindowState{normal, maximised})
+	// 原生模式和矩形必须在同一 UI 回合取得；单元测试使用无应用的假窗口，直接执行同样的采样逻辑。
+	read := func() {
+		maximised, fullscreen, minimised := e.window.IsMaximised(), e.window.IsFullscreen(), e.window.IsMinimised()
+		var bounds application.Rect
+		if !maximised && !fullscreen && !minimised {
+			bounds = e.window.Bounds()
+		}
+		c.mu.Lock()
+		if bounds.Width > 0 && bounds.Height > 0 {
+			e.normal = bounds
+		}
+		normal := e.normal
+		c.mu.Unlock()
+		if minimised {
+			if previous, ok := c.store.get(id); ok {
+				maximised, fullscreen = previous.Maximised, previous.Fullscreen
+			}
+		}
+		c.store.put(id, WindowState{Bounds: normal, Maximised: maximised && !fullscreen, Fullscreen: fullscreen})
+	}
+	if c.app != nil {
+		application.InvokeSync(read)
+	} else {
+		read()
+	}
 }
 
 // clampOne 将普通窗口的大小和位置调整到当前显示器工作区内，避免移除显示器或改变缩放后找不到窗口。
 func (c *Controller) clampOne(e *entry) {
 	if e == nil {
-		return
-	}
-	if e.window.IsMaximised() || e.window.IsMinimised() || e.window.IsFullscreen() {
 		return
 	}
 	minimumWidth, minimumHeight := 320, 240
@@ -381,8 +448,16 @@ func (c *Controller) clampOne(e *entry) {
 	if e.window.Name() == "main-window" {
 		minimumWidth, minimumHeight = c.config.MinWidth, c.config.MinHeight
 	}
-	bounds := e.window.Bounds()
 	areas := c.areas()
+	// 原生窗口以全屏或最大化启动时也要修复普通矩形缓存，退出该模式后才能恢复到安全位置。
+	c.mu.Lock()
+	e.normal = FitBounds(e.normal, areas, minimumWidth, minimumHeight)
+	c.mu.Unlock()
+	if e.window.IsMaximised() || e.window.IsMinimised() || e.window.IsFullscreen() {
+		c.capture(e.window.Name())
+		return
+	}
+	bounds := e.window.Bounds()
 	fitted := FitBounds(bounds, areas, minimumWidth, minimumHeight)
 	if len(areas) > 0 {
 		e.window.SetMinSize(min(minimumWidth, fitted.Width), min(minimumHeight, fitted.Height))
@@ -468,16 +543,24 @@ func (c *Controller) open(options utils.NewWindowOptions, ceiling []string, rese
 	options.Width = max(options.Width, 320)
 	options.Height = max(options.Height, 240)
 	actual := options
+	// 先建立普通窗口并恢复安全矩形，再应用模式，避免在全屏之后写入普通坐标破坏原生恢复位置。
+	actual.IsFullscreen = false
 	actual.Url = StatusPage
 	actual.F12DevTools = actual.F12DevTools && c.config.Debug
 	w := utils.CreateUrlWindow(actual)
 	w.SetMinSize(320, 240)
 	c.track(w, options, true, true, ceiling)
+	fullscreen := options.IsFullscreen
+	maximised := false
 	if saved, ok := c.store.get(options.Name); ok && c.config.RememberWindows {
 		w.SetBounds(FitBounds(saved.Bounds, c.areas(), 320, 240))
-		if saved.Maximised {
-			w.Maximise()
-		}
+		fullscreen = fullscreen || saved.Fullscreen
+		maximised = saved.Maximised
+	}
+	if fullscreen {
+		w.Fullscreen()
+	} else if maximised {
+		w.Maximise()
 	}
 	w.Show()
 	c.clampOne(c.getEntry(options.Name))
@@ -522,6 +605,7 @@ func (c *Controller) Info(id string) (WindowInfo, error) {
 	c.mu.RUnlock()
 	info.Visible = e.window.IsVisible()
 	info.Maximised = e.window.IsMaximised()
+	info.Fullscreen = e.window.IsFullscreen()
 	info.Bounds = e.window.Bounds()
 	return info, nil
 }
@@ -826,6 +910,16 @@ func (c *Controller) InstallTray(icon []byte) {
 	})
 	menu.AddSeparator()
 	menu.Add("显示主窗口").OnClick(func(*application.Context) { c.WakeMain() })
+	menu.Add("设备接入中心").OnClick(func(*application.Context) {
+		if _, err := c.Open(utils.NewWindowOptions{Name: "devices-console", Title: "设备接入中心", Url: "/shell/devices.html", Width: 1160, Height: 880}); err != nil {
+			c.app.Logger.Warn("open devices center", "code", "E_DEVICES_OPEN")
+		}
+	})
+	menu.Add("打印与文件中心").OnClick(func(*application.Context) {
+		if _, err := c.Open(utils.NewWindowOptions{Name: "documents-console", Title: "打印与文件中心", Url: "/shell/documents.html", Width: 1160, Height: 880}); err != nil {
+			c.app.Logger.Warn("open documents center", "code", "E_DOCUMENTS_OPEN")
+		}
+	})
 	menu.Add("任务与数据中心").OnClick(func(*application.Context) {
 		if _, err := c.Open(utils.NewWindowOptions{Name: "tasks-console", Title: "任务与数据中心", Url: "/shell/tasks.html", Width: 1160, Height: 880}); err != nil {
 			c.app.Logger.Warn("open task center", "code", "E_TASKS_OPEN")

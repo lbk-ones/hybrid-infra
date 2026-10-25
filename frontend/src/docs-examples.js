@@ -78,6 +78,167 @@ const fileNote =
 
 // 为所有有参数的方法提供可填写的示例；无参数方法由 getMethodExample 生成直接调用模板。
 const examples = {
+  "Devices.CancelRead": example([
+    text("id", "替换为连接ID", "只停止当前读取，不关闭硬件或清空队列。"),
+  ]),
+  "Host.Restart": example([], {
+    note: "会真正关闭并重新启动当前应用；未完成任务会阻止重启，未保存草稿不会自动保存。",
+  }),
+  "Devices.OpenSerial": example([
+    json(
+      "options",
+      {
+        port: "COM3",
+        baudRate: 9600,
+        dataBits: 8,
+        parity: "none",
+        stopBits: "1",
+        dtr: false,
+        rts: false,
+      },
+      "先枚举串口，按设备说明书设置参数。",
+    ),
+  ]),
+  "Devices.OpenTCP": example([
+    text("endpoint", "192.168.1.50:9100", "需与 deviceEndpoints 白名单完全一致。"),
+  ]),
+  "Devices.Read": example([
+    text("id", "替换为连接ID", "当前窗口的连接，不能同时与 onData 竞争接收。"),
+    number("timeoutMs", 1000, "等待 1–10000 毫秒。"),
+  ]),
+  "Devices.Write": example([
+    text("id", "替换为连接ID", "确认真实设备及指令后发送。"),
+    text("data", "REVNTw==", "原始字节 Base64，示例为 DEMO 文本，不是通用设备指令。"),
+  ]),
+  "Devices.Close": example([
+    text("id", "替换为连接ID", "关闭本窗口连接。"),
+    boolean("remove", true, "同时移除终态记录。"),
+  ]),
+  "Devices.encode": example(
+    [
+      text("text", "1B 40", "文本或精确十六进制字节。"),
+      text("format", "hex", "text 为 UTF-8，hex 为十六进制。"),
+    ],
+    { sync: true },
+  ),
+  "Devices.writeText": example([
+    text("id", "替换为连接ID", "本窗口连接。"),
+    text("text", "", "设备协议文本，不提供自动探测命令。"),
+  ]),
+  "Devices.writeHex": example([
+    text("id", "替换为连接ID", "本窗口连接。"),
+    text("hex", "", "按真实设备协议填写完整字节。"),
+  ]),
+  "Devices.onData": example([
+    text("id", "替换为连接ID", "先在本页打开连接。"),
+    source(
+      "callback",
+      "async (value) => console.log(value)",
+      "函数保留在本页，bytes/text/lines 返回类型不同。",
+    ),
+    source(
+      "options",
+      "({mode:'lines',encoding:'utf-8',onError:error=>console.error(error.message)})",
+      "跨块解码并按行回调，停止清理按钮可解除。",
+    ),
+  ]),
+  "Devices.onScan": example(
+    [
+      text("target", "main", "建议改为独立扫码输入区域选择器。"),
+      source("callback", "async (code) => console.log(code)", "收到完整条码后回调。"),
+      json(
+        "options",
+        { gapMs: 50, minLength: 3, maxLength: 256, terminator: "Enter", prefix: "" },
+        "快速按键仍可能是普通打字，不是 USB 身份证明。",
+      ),
+    ],
+    { sync: true },
+  ),
+  "Devices.parseWeight": example(
+    [
+      text("text", "ST,GS,+0012.340kg", "常见文本秤帧，私有协议需要自行解析。"),
+      json("options", { defaultUnit: "" }, "无单位时不自动猜测，可显式设置 kg/g/lb/t。"),
+    ],
+    { sync: true },
+  ),
+  "Devices.PrintRaw": example([
+    text("printer", "替换为已安装打印机名称", "先枚举打印机，会真实提交打印后台。"),
+    text("title", "业务标签", "任务名称。"),
+    text("data", "", "原始设备指令 Base64，避免未确认就向真实硬件发送示例。"),
+  ]),
+  "Devices.dispose": example([], {
+    sync: true,
+    note: "关闭本页全部设备并停止回调，之后需要刷新页面重新连接。",
+  }),
+  "Documents.OpenPrintPreview": example([
+    json(
+      "report",
+      {
+        title: "订单报表",
+        headers: ["订单号", "金额"],
+        rows: [["001", "128.00"]],
+        paper: "A4",
+        orientation: "portrait",
+      },
+      "在系统默认浏览器打开本地预览，由用户点击打印。",
+    ),
+  ]),
+  "Documents.Parse": example([
+    text("format", "csv", "csv、json、xlsx 或 zip。"),
+    text("data", "aWQsbmFtZQoxLERlbW8K", "Base64 文件内容。"),
+  ]),
+  "Documents.ImportFile": example([token, text("format", "csv", "实际文件格式。")]),
+  "Documents.ExportFile": example([
+    token,
+    text("format", "csv", "目标格式。"),
+    json(
+      "table",
+      { headers: ["id", "name"], rows: [["001", "示例"]] },
+      "单元格为文本；使用保存凭证。",
+    ),
+  ]),
+  "Documents.readFile": example([
+    source(
+      "file",
+      "new File([`id,name\n001,Demo\n`], 'demo.csv', {type:'text/csv'})",
+      "用户选取或拖入的标准 File。",
+    ),
+    text("format", "csv", "可省略时按扩展名推断。"),
+  ]),
+  "Documents.onDrop": example([
+    text("target", "main", "现有拖放容器选择器。"),
+    source(
+      "handler",
+      "async (files) => { console.log(files.map(file => ({name:file.name,size:file.size}))); }",
+      "只接收 File[]，不自动读取或上传。",
+    ),
+    source("options", "({ onError: error => console.error(error.message) })", "回调失败处理。"),
+  ]),
+  "Documents.preview": example(
+    [
+      text("target", "main", "预览附到已有容器，停止/清理可移除。"),
+      json(
+        "report",
+        { title: "订单报表", headers: ["订单号", "金额"], rows: [["001", "128.00"]] },
+        "报表文字不作为 HTML 执行。",
+      ),
+    ],
+    { sync: true },
+  ),
+  "Documents.printReport": example([
+    json(
+      "report",
+      {
+        title: "订单报表",
+        headers: ["订单号", "金额"],
+        rows: [["001", "128.00"]],
+        paper: "A4",
+        orientation: "portrait",
+      },
+      "打开预览后由用户选择打印或另存 PDF。",
+    ),
+  ]),
+  "Documents.dispose": example([], { sync: true }),
   "Tasks.Create": example([
     text("title", "手动任务", "创建后必须 Poll 领取并持续续租，推荐直接用 run。"),
   ]),

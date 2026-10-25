@@ -109,6 +109,20 @@ func (s *HostService) Quit(ctx context.Context) error {
 	return s.controller.Quit()
 }
 
+// Restart 重新启动当前应用并读取已保存配置；有未完成任务时拒绝，不接受程序路径或任意重启命令。
+func (s *HostService) Restart(ctx context.Context) error {
+	if ctx.Err() != nil {
+		return host.Fail("E_CANCELLED", "重启请求已取消")
+	}
+	if err := host.Require(ctx, "lifecycle"); err != nil {
+		return err
+	}
+	if _, window := host.CallerIdentity(ctx); window == "" {
+		return host.Fail("E_WINDOW_NOT_FOUND", "重启需要原生窗口")
+	}
+	return s.controller.Restart()
+}
+
 // WindowService 是前端管理具名窗口的服务入口，不在这里重复实现窗口恢复和导航策略。
 type WindowService struct{ controller *host.Controller }
 

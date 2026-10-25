@@ -5,10 +5,12 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"net"
 	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -62,13 +64,15 @@ type PkgInfo struct {
 	SplashEnabled       bool                `json:"splashEnabled"` // 是否显示独立启动屏；默认开启，关闭后静默引导并直接显示主窗口。
 	Icons               IconConfig          `json:"icons"`
 	Updates             UpdateConfig        `json:"updates"`
-	ShellPrograms       []string            `json:"shellPrograms"` // 允许程序模式执行的程序；启动时解析为固定绝对路径，默认空列表。
+	DeviceEndpoints     []string            `json:"deviceEndpoints"` // 网络设备 IP:端口白名单；不解析域名，默认不允许任何 TCP 设备。
+	ShellPrograms       []string            `json:"shellPrograms"`   // 允许程序模式执行的程序；启动时解析为固定绝对路径，默认空列表。
 	Title               string              `json:"title"`
 	Url                 string              `json:"url"`
 	PageMode            string              `json:"pageMode"`  // builtin 使用内置资源，http 加载网址，local 读取 EXE 旁目录；留空按旧 url 规则推断。
 	LocalRoot           string              `json:"localRoot"` // local 模式的网页目录，相对路径以 EXE 所在目录为基准，留空使用 web。
 	Debug               bool                `json:"debug"`
 	Frameless           bool                `json:"frameless"`
+	WindowState         string              `json:"windowState"` // 主窗口启动模式：auto 跟随记忆，normal 普通，maximized 最大化，fullscreen 全屏。
 	Width               int                 `json:"width"`
 	Height              int                 `json:"height"`
 	LogLevel            int                 `json:"logLevel"`
@@ -169,6 +173,17 @@ func (p *PkgInfo) validate() error {
 	if p.CloseBehavior != "exit" && p.CloseBehavior != "hide" {
 		return errors.New("closeBehavior must be exit or hide")
 	}
+	if len(p.DeviceEndpoints) > 64 {
+		return errors.New("deviceEndpoints supports at most 64 endpoints")
+	}
+	for _, endpoint := range p.DeviceEndpoints {
+		address, port, err := net.SplitHostPort(endpoint)
+		number, e := strconv.Atoi(port)
+		ip := net.ParseIP(address)
+		if err != nil || e != nil || number < 1 || number > 65535 || ip == nil || ip.IsUnspecified() || ip.IsMulticast() {
+			return errors.New("deviceEndpoints requires literal IP:port with port 1–65535")
+		}
+	}
 	if p.ExternalLinks != "browser" && p.ExternalLinks != "block" {
 		return errors.New("externalLinks must be browser or block")
 	}
@@ -180,6 +195,14 @@ func (p *PkgInfo) validate() error {
 	}
 	if p.Width < 0 || p.Height < 0 {
 		return errors.New("width and height must be non-negative")
+	}
+	if p.WindowState == "" {
+		p.WindowState = "auto"
+	}
+	switch p.WindowState {
+	case "auto", "normal", "maximized", "fullscreen":
+	default:
+		return errors.New("windowState must be auto, normal, maximized or fullscreen")
 	}
 	if p.Url == "" {
 		p.Url = "/"
@@ -205,7 +228,7 @@ func (p *PkgInfo) validate() error {
 	for _, capabilities := range permissionSets {
 		for _, capability := range capabilities {
 			switch capability {
-			case "host", "windows", "ui", "ui.html", "store", "log", "lifecycle", "events", "files", "downloads", "clipboard", "notifications", "shortcuts", "settings", "credentials", "protocol", "shell", "shell.script", "cache", "cache.global", "events.global", "screenshot", "diagnostics", "updates", "backups", "tasks", "tasks.manage", "database":
+			case "host", "windows", "ui", "ui.html", "store", "log", "lifecycle", "events", "files", "downloads", "clipboard", "notifications", "shortcuts", "settings", "credentials", "protocol", "shell", "shell.script", "cache", "cache.global", "events.global", "screenshot", "diagnostics", "updates", "backups", "tasks", "tasks.manage", "database", "printing", "documents", "devices.serial", "devices.network", "devices.print":
 			default:
 				return fmt.Errorf("unknown capability %q", capability)
 			}

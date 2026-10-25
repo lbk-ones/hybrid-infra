@@ -86,8 +86,9 @@ function addOrigin(origin = "", permissions = []) {
 function writeForm(config) {
   draftBase = structuredClone(config);
   for (const name of [...textSettings, ...numberSettings]) field(name).value = config[name] ?? "";
+  field("windowState").value = config.windowState || "auto";
   for (const name of booleanSettings) field(name).checked = config[name] === true;
-  for (const name of ["allowedOrigins", "navigationOrigins", "shellPrograms"])
+  for (const name of ["allowedOrigins", "navigationOrigins", "shellPrograms", "deviceEndpoints"])
     field(name).value = (config[name] || []).join("\n");
   field("iconApplication").value = config.icons?.application || "";
   field("iconTray").value = config.icons?.tray || "";
@@ -109,6 +110,7 @@ function readForm() {
     "allowedOrigins",
     "navigationOrigins",
     "shellPrograms",
+    "deviceEndpoints",
     "iconApplication",
     "iconTray",
   ])
@@ -143,6 +145,8 @@ function updatePreview() {
     $("settings-preview").textContent = "请先修正表单输入。";
     $("save-settings").disabled = true;
   }
+  $("restart-app").disabled = busy || !capabilities.has("lifecycle");
+  $("save-restart-app").disabled = busy || !capabilities.has("lifecycle");
   $("settings-restart").textContent = snapshot.restartRequired
     ? `待重启生效：${snapshot.pendingFields.join("、")}`
     : "当前启动配置已生效";
@@ -241,6 +245,30 @@ $("apply-json").addEventListener("click", () => {
     notice(error.message, true);
   }
 });
+
+/** 区分只重启与保存后重启；先确认草稿处理方式，有业务任务时由宿主明确拒绝。 */
+async function restartApplication(save) {
+  if (busy || !snapshot) return;
+  if (!save && changedSettingsFields(snapshot.saved, readForm()).length) {
+    notice("存在未保存修改，请先保存，或使用“保存并重启”。", true);
+    return;
+  }
+  if (
+    !window.confirm(
+      save
+        ? "保存当前配置并重启应用？未完成任务会阻止重启。"
+        : "重启应用并加载磁盘配置？未完成任务会阻止重启。",
+    )
+  )
+    return;
+  await operation(async () => {
+    if (save) renderSnapshot(await Desktop.SaveSettings(readForm()));
+    await Host.Restart();
+    notice("重启助手已就绪，应用即将关闭并重新启动。");
+  });
+}
+$("restart-app").addEventListener("click", () => void restartApplication(false));
+$("save-restart-app").addEventListener("click", () => void restartApplication(true));
 
 /** 连接宿主并检查 settings 授权；无授权时展示说明，不提供模拟配置或自动扩大权限。 */
 async function initialize() {

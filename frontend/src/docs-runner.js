@@ -6,6 +6,9 @@ const browserMethods = new Set([
   "Hybrid.isDesktopShell",
   "Hybrid.detectEnvironment",
   "normalizeError",
+  "Devices.encode",
+  "Devices.parseWeight",
+  "Devices.onScan",
 ]);
 
 /** 将结果与错误转成可读文本，兼容循环引用、函数、BigInt 和 undefined，并限制输出大小防止日志占满页面。 */

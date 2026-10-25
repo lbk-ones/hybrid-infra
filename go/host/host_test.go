@@ -149,7 +149,7 @@ func TestRestoreWindowAfterMonitorRemoved(t *testing.T) {
 func TestStateWritesAtomicallyAndRecoversCorruption(t *testing.T) {
 	dir := t.TempDir()
 	store := newStateStore(dir)
-	wanted := WindowState{application.Rect{X: -800, Y: 40, Width: 800, Height: 600}, true}
+	wanted := WindowState{Bounds: application.Rect{X: -800, Y: 40, Width: 800, Height: 600}, Maximised: true}
 	store.put("main-window", wanted)
 	if err := store.save(); err != nil {
 		t.Fatal(err)
@@ -185,6 +185,9 @@ func (w *fakeWindow) IsMinimised() bool { return false }
 
 // IsMaximised 让测试窗口始终处于普通状态，便于验证窗口信息查询和复用。
 func (w *fakeWindow) IsMaximised() bool { return false }
+
+// IsFullscreen 让普通测试窗口明确返回非全屏状态，不调用嵌入的原生接口。
+func (w *fakeWindow) IsFullscreen() bool { return false }
 
 // IsVisible 让测试窗口固定返回可见，用于构造不依赖原生环境的窗口快照。
 func (w *fakeWindow) IsVisible() bool { return true }

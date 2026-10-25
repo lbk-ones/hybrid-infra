@@ -120,6 +120,14 @@ export function Ready() {
 }
 
 /**
+ * Restart 重新启动当前应用并读取已保存配置；有未完成任务时拒绝，不接受程序路径或任意重启命令。
+ * @returns {$CancellablePromise<void>}
+ */
+export function Restart() {
+    return $Call.ByID(3452270830);
+}
+
+/**
  * Retry 检查 host 权限后重试当前窗口；home 为 true 时返回内置首页，仍会执行未完成任务检查。
  * @param {boolean} home
  * @returns {$CancellablePromise<void>}
