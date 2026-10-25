@@ -1,5 +1,7 @@
 {
   "title": "Hybrid App",
+  "splashEnabled": true,
+  "icons": { "application": "", "tray": "" },
   "url": "/",
   "debug": false,
   "frameless": false,

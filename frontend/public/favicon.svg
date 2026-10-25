@@ -1,1 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" rx="11" fill="#167b66"/><path d="M12 10v20m0-10c0-8 13-8 13 0v10m-2-19h8v8m0-8-9 9" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="shell" x1="8" y1="4" x2="54" y2="62" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#237965" />
+      <stop offset="1" stop-color="#103E36" />
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="17" fill="url(#shell)" />
+  <rect x="2.5" y="2.5" width="59" height="59" rx="16.5" stroke="#FFFFFF" stroke-opacity=".12" />
+  <path d="M16 16H25V28H39V37H25V48H16V16Z" fill="#F0FFF8" />
+  <path d="M39 16H48V48H39V16Z" fill="#8FF0CA" />
+</svg>

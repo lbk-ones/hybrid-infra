@@ -362,6 +362,15 @@ bind(
   "启动配置已校验并保存，请查看生效状态",
 );
 
+// 图标使用已保存的固定地址；用户编辑 JSON 后须先保存，再显式重新加载，其他启动配置不热更新。
+bind(
+  "icons-reload",
+  async () => {
+    renderSettings(await Hybrid.call(() => Desktop.ReloadIcons(), { timeoutMs: 30000 }));
+  },
+  "图标已重新加载；其他启动设置仍按页面提示生效",
+);
+
 // 秘密只进入密码框和凭据 RPC，不写入提示、console、下载记录或普通设置；写入和删除后清空密码框。
 bind(
   "credential-save",

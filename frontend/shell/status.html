@@ -5,10 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/shell.css" />
     <title>正在加载 · Hybrid</title>
+    <script>
+      // 关闭启动屏时静默完成主窗口首次引导；加载错误仍进入不带此参数的完整恢复页面。
+      if (new URLSearchParams(location.search).get("startup") === "quiet") {
+        document.documentElement.classList.add("startup-quiet");
+      }
+    </script>
+    <style>
+      .startup-quiet .status-card {
+        visibility: hidden;
+      }
+    </style>
   </head>
   <body class="status-page">
     <main class="status-card">
-      <span class="shell-brand" aria-hidden="true">h↗</span>
+      <img
+        class="shell-brand"
+        src="/app-icon.svg"
+        width="58"
+        height="58"
+        alt=""
+        draggable="false"
+      />
       <p class="eyebrow">HYBRID DESKTOP</p>
       <h1 id="status-title">正在连接工作空间</h1>
       <p id="status-message" role="status" aria-live="polite">页面加载中，请稍候。</p>

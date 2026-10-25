@@ -72,6 +72,56 @@ test("desktop facade forwards file bytes and clipboard operations", async () => 
 });
 
 // 验证维护绑定走现有独立前端传输，不依赖工作台路由，也不擅自更换方法参数。
+test("desktop icon reload uses the existing transport without accepting arbitrary icon addresses", async () => {
+  const { Desktop } = await import("../hybrid/client.js");
+  const calls = [];
+  configureHybrid({
+    transport: {
+      async call(...args) {
+        calls.push(args);
+        return {
+          active: { icons: { application: "", tray: "" } },
+          saved: { icons: { application: "", tray: "" } },
+          preferences: {},
+          restartRequired: false,
+        };
+      },
+    },
+  });
+  try {
+    const snapshot = await Desktop.ReloadIcons();
+    assert.deepEqual(calls.at(-1)[3].args, []);
+    assert.equal(snapshot.restartRequired, false);
+  } finally {
+    configureHybrid({ transport: null });
+  }
+});
+
+// 启动屏绑定只转发固定动作，调用者不能传入窗口名称或跳转地址。
+test("startup bindings forward fixed internal actions without window or address parameters", async () => {
+  const { Host } = await import("../hybrid/client.js");
+  const calls = [];
+  configureHybrid({
+    transport: {
+      async call(...args) {
+        calls.push(args);
+        return { title: "Hybrid", version: "0.1.0", status: "loading" };
+      },
+    },
+  });
+  try {
+    const state = await Host.GetStartupState();
+    assert.equal(state.title, "Hybrid");
+    assert.equal(state.status, "loading");
+    assert.deepEqual(calls.at(-1)[3].args, []);
+    await Host.DismissSplash();
+    assert.deepEqual(calls.at(-1)[3].args, []);
+  } finally {
+    configureHybrid({ transport: null });
+  }
+});
+
+// 验证维护绑定只传递不透明备份 ID 和固定更新动作。
 test("maintenance facade forwards opaque backup IDs and update actions", async () => {
   const { Maintenance } = await import("../hybrid/client.js");
   const calls = [];

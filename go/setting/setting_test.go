@@ -6,6 +6,24 @@ import (
 	"testing"
 )
 
+// TestSplashDefaultsAndDisable 验证缺省配置开启启动屏，同时显式 false 不会被默认值覆盖。
+func TestSplashDefaultsAndDisable(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "settings.json")
+	t.Setenv("HYBRID_SETTINGS", path)
+	for _, sample := range []struct {
+		json    string
+		enabled bool
+	}{{`{}`, true}, {`{"splashEnabled":false}`, false}, {`{"splashEnabled":true}`, true}} {
+		if err := os.WriteFile(path, []byte(sample.json), 0600); err != nil {
+			t.Fatal(err)
+		}
+		config, err := New().Parse()
+		if err != nil || config.SplashEnabled != sample.enabled {
+			t.Fatalf("splash enabled=%v expected=%v err=%v", config.SplashEnabled, sample.enabled, err)
+		}
+	}
+}
+
 // TestExplicitConfigAndDataDirectory 验证环境变量指定的配置文件和用户数据目录生效，并自动纳入远程主页面来源。
 func TestExplicitConfigAndDataDirectory(t *testing.T) {
 	dir := t.TempDir()

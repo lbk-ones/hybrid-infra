@@ -164,6 +164,16 @@ export function ReleaseFile(token) {
 }
 
 /**
+ * ReloadIcons 检查设置权限后重新加载磁盘中的图标地址，立即更新托盘和运行中窗口。
+ * @returns {$CancellablePromise<host$0.SettingsSnapshot>}
+ */
+export function ReloadIcons() {
+    return $Call.ByID(1234579294).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType2($result);
+    }));
+}
+
+/**
  * RemoveDownload 移除本页面已经结束的任务记录，磁盘文件不会删除。
  * @param {string} id
  * @returns {$CancellablePromise<void>}

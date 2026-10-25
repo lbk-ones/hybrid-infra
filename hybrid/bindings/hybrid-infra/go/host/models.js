@@ -1051,6 +1051,51 @@ export class SettingsSnapshot {
 }
 
 /**
+ * StartupState 只向启动屏提供应用名称、版本和加载阶段，不泄露业务地址、配置或错误详情。
+ */
+export class StartupState {
+    /**
+     * Creates a new StartupState instance.
+     * @param {Partial<StartupState>} [$$source = {}] - The source object to create the StartupState.
+     */
+    constructor($$source = {}) {
+        if (!("title" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["title"] = "";
+        }
+        if (!("version" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["version"] = "";
+        }
+        if (!("status" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["status"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new StartupState instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {StartupState}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new StartupState(/** @type {Partial<StartupState>} */($$parsedSource));
+    }
+}
+
+/**
  * Task 表示一个尚未完成的业务任务；这里只登记退出保护，不负责执行业务工作。
  */
 export class Task {

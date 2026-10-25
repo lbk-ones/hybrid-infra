@@ -6,12 +6,65 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+/**
+ * IconConfig 为运行时窗口和托盘指定 PNG，本地相对路径以配置文件目录为基准；留空使用内置品牌图标。
+ */
+export class IconConfig {
+    /**
+     * Creates a new IconConfig instance.
+     * @param {Partial<IconConfig>} [$$source = {}] - The source object to create the IconConfig.
+     */
+    constructor($$source = {}) {
+        if (!("application" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["application"] = "";
+        }
+        if (!("tray" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["tray"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new IconConfig instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {IconConfig}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new IconConfig(/** @type {Partial<IconConfig>} */($$parsedSource));
+    }
+}
+
 export class PkgInfo {
     /**
      * Creates a new PkgInfo instance.
      * @param {Partial<PkgInfo>} [$$source = {}] - The source object to create the PkgInfo.
      */
     constructor($$source = {}) {
+        if (!("splashEnabled" in $$source)) {
+            /**
+             * 是否显示独立启动屏；默认开启，关闭后静默引导并直接显示主窗口。
+             * @member
+             * @type {boolean}
+             */
+            this["splashEnabled"] = false;
+        }
+        if (!("icons" in $$source)) {
+            /**
+             * @member
+             * @type {IconConfig}
+             */
+            this["icons"] = (new IconConfig());
+        }
         if (!("updates" in $$source)) {
             /**
              * @member
@@ -176,30 +229,34 @@ export class PkgInfo {
      * @returns {PkgInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType0;
-        const $$createField1_0 = $$createType1;
-        const $$createField9_0 = $$createType1;
-        const $$createField17_0 = $$createType1;
+        const $$createField1_0 = $$createType0;
+        const $$createField2_0 = $$createType1;
+        const $$createField3_0 = $$createType2;
+        const $$createField11_0 = $$createType2;
         const $$createField19_0 = $$createType2;
-        const $$createField20_0 = $$createType1;
+        const $$createField21_0 = $$createType3;
+        const $$createField22_0 = $$createType2;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("icons" in $$parsedSource) {
+            $$parsedSource["icons"] = $$createField1_0($$parsedSource["icons"]);
+        }
         if ("updates" in $$parsedSource) {
-            $$parsedSource["updates"] = $$createField0_0($$parsedSource["updates"]);
+            $$parsedSource["updates"] = $$createField2_0($$parsedSource["updates"]);
         }
         if ("shellPrograms" in $$parsedSource) {
-            $$parsedSource["shellPrograms"] = $$createField1_0($$parsedSource["shellPrograms"]);
+            $$parsedSource["shellPrograms"] = $$createField3_0($$parsedSource["shellPrograms"]);
         }
         if ("allowedOrigins" in $$parsedSource) {
-            $$parsedSource["allowedOrigins"] = $$createField9_0($$parsedSource["allowedOrigins"]);
+            $$parsedSource["allowedOrigins"] = $$createField11_0($$parsedSource["allowedOrigins"]);
         }
         if ("navigationOrigins" in $$parsedSource) {
-            $$parsedSource["navigationOrigins"] = $$createField17_0($$parsedSource["navigationOrigins"]);
+            $$parsedSource["navigationOrigins"] = $$createField19_0($$parsedSource["navigationOrigins"]);
         }
         if ("permissions" in $$parsedSource) {
-            $$parsedSource["permissions"] = $$createField19_0($$parsedSource["permissions"]);
+            $$parsedSource["permissions"] = $$createField21_0($$parsedSource["permissions"]);
         }
         if ("desktopCapabilities" in $$parsedSource) {
-            $$parsedSource["desktopCapabilities"] = $$createField20_0($$parsedSource["desktopCapabilities"]);
+            $$parsedSource["desktopCapabilities"] = $$createField22_0($$parsedSource["desktopCapabilities"]);
         }
         return new PkgInfo(/** @type {Partial<PkgInfo>} */($$parsedSource));
     }
@@ -272,6 +329,7 @@ export class UpdateConfig {
 }
 
 // Private type creation functions
-const $$createType0 = UpdateConfig.createFrom;
-const $$createType1 = $Create.Array($Create.Any);
-const $$createType2 = $Create.Map($Create.Any, $$createType1);
+const $$createType0 = IconConfig.createFrom;
+const $$createType1 = UpdateConfig.createFrom;
+const $$createType2 = $Create.Array($Create.Any);
+const $$createType3 = $Create.Map($Create.Any, $$createType2);

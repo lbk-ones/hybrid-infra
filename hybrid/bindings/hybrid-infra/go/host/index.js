@@ -20,6 +20,7 @@ export {
     ScreenshotReq,
     ScreenshotResult,
     SettingsSnapshot,
+    StartupState,
     Task,
     UpdateState,
     WindowInfo

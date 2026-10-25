@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>正在启动 · Hybrid</title>
+    <link rel="stylesheet" href="/splash.css" />
+  </head>
+  <body>
+    <main class="splash-card" aria-busy="true">
+      <header class="splash-header">
+        <span>HYBRID / DESKTOP</span
+        ><button id="splash-skip" aria-label="跳过启动屏，显示主窗口" title="显示主窗口">↗</button>
+      </header>
+      <div class="splash-mark" aria-hidden="true">
+        <span class="splash-orbit"></span
+        ><img src="/app-icon.svg" width="66" height="66" alt="" draggable="false" />
+      </div>
+      <h1 id="splash-title">Hybrid</h1>
+      <p id="splash-message" role="status" aria-live="polite">正在准备桌面环境</p>
+      <div class="splash-progress" role="progressbar" aria-label="工作空间正在加载">
+        <span></span>
+      </div>
+      <footer>
+        <span><i></i>连接 Web 与桌面</span><span id="splash-version">DESKTOP INFRASTRUCTURE</span>
+      </footer>
+    </main>
+    <script type="module" src="/src/shell-splash.js"></script>
+  </body>
+</html>

@@ -23,6 +23,9 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
+//go:embed frontend/public/app-icon.png frontend/public/tray-icon.png
+var iconAssets embed.FS
+
 // init 向 Wails 注册 time 事件的数据类型，使前端接收的时间事件按字符串处理。
 func init() { application.RegisterEvent[string]("time") }
 
@@ -51,7 +54,16 @@ func main() {
 	controller := host.New(config, dir)
 	maintenance := host.NewMaintenance(controller, dir)
 	controller.OnMainRuntimeReady(maintenance.MarkUpdateHealthy)
+	appIcon, err := iconAssets.ReadFile("frontend/public/app-icon.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+	trayIcon, err := iconAssets.ReadFile("frontend/public/tray-icon.png")
+	if err != nil {
+		log.Fatal(err)
+	}
 	options := application.Options{
+		Icon: appIcon,
 		Name: "hybrid-infra", Description: "Hybrid desktop host",
 		Assets: application.AssetOptions{Handler: application.BundledAssetFileServer(assets), Middleware: application.ChainMiddleware(utils.AssetMiddleware(config.TrustedOrigins()), controller.Policy.Middleware)},
 		// 仅记录错误码，避免将底层错误中的业务内容写入诊断。
@@ -78,10 +90,14 @@ func main() {
 	}
 	defer releaseData()
 	controller.Attach(app)
+	if err = controller.InstallIcons(appIcon, trayIcon); err != nil {
+		log.Fatal(err)
+	}
 	windowOptions := controller.InitialOptions()
 	windowOptions.Mac = application.MacWindow{InvisibleTitleBarHeight: 50, Backdrop: application.MacBackdropTranslucent, TitleBar: application.MacTitleBarHiddenInset}
 	mainWindow := app.Window.NewWithOptions(windowOptions)
 	controller.TrackMain(mainWindow)
+	controller.InstallSplash()
 	app.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) { controller.HandleActivation(os.Args[1:]) })
 	app.Event.OnApplicationEvent(events.Common.ApplicationLaunchedWithUrl, func(e *application.ApplicationEvent) { controller.HandleActivation([]string{e.Context().URL()}) })
 	if err = services.Register(app, controller, maintenance); err != nil {
@@ -89,11 +105,7 @@ func main() {
 	}
 	app.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(*application.ApplicationEvent) { maintenance.StartMaintenance() })
 	if config.TrayEnabled || config.CloseBehavior == "hide" {
-		icon, readErr := assets.ReadFile("frontend/dist/wails.png")
-		if readErr != nil {
-			log.Fatal(readErr)
-		}
-		controller.InstallTray(icon)
+		controller.InstallTray(trayIcon)
 	}
 	go func() {
 		ticker := time.NewTicker(time.Second)

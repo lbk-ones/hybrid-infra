@@ -27,6 +27,14 @@ export function BeginTask(label) {
 }
 
 /**
+ * DismissSplash 检查 host 能力后跳过启动屏，不能通过参数指定或操控其他窗口。
+ * @returns {$CancellablePromise<void>}
+ */
+export function DismissSplash() {
+    return $Call.ByID(3619326406);
+}
+
+/**
  * EndTask 检查 lifecycle 权限后释放当前窗口的任务；任务归属由宿主管理器再次核对。
  * @param {string} id
  * @returns {$CancellablePromise<void>}
@@ -76,6 +84,16 @@ export function GetPendingTasks() {
 }
 
 /**
+ * GetStartupState 检查 host 能力后读取启动状态，管理器还会验证调用者确为内置启动屏。
+ * @returns {$CancellablePromise<host$0.StartupState>}
+ */
+export function GetStartupState() {
+    return $Call.ByID(585899115).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType5($result);
+    }));
+}
+
+/**
  * Quit 检查 lifecycle 权限后请求退出应用；存在未完成任务时返回错误，不直接绕过退出保护。
  * @returns {$CancellablePromise<void>}
  */
@@ -106,3 +124,4 @@ const $$createType1 = host$0.EnvironmentInfo.createFrom;
 const $$createType2 = $Create.Map($Create.Any, $Create.Any);
 const $$createType3 = host$0.WindowInfo.createFrom;
 const $$createType4 = $Create.Array($$createType0);
+const $$createType5 = host$0.StartupState.createFrom;

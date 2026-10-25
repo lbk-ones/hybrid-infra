@@ -173,10 +173,18 @@
         <details>
           <summary>启动配置（保存后重启生效）</summary>
           <p class="panel-description">
+            splashEnabled 控制启动屏：true 开启，false 关闭，修改后重启生效。
+          </p>
+          <p class="panel-description">
             包含窗口、来源权限、托盘等。修改前确认 JSON 完整；业务密码请使用系统凭据库。
           </p>
           <textarea id="startup-settings" rows="12" spellcheck="false"></textarea
           ><button id="startup-save">校验并保存启动配置</button>
+          <p class="panel-description">
+            icons.application 和 icons.tray 支持本地 PNG 路径或 HTTPS
+            地址。相对路径以配置文件所在目录为准；留空恢复默认。保存后可立即重载图标，其他设置仍需重启。
+          </p>
+          <button id="icons-reload">重新加载应用与托盘图标</button>
         </details>
       </section>
       <section class="manage-panel" data-cap="credentials">

@@ -51,7 +51,7 @@ func Register(app *application.App, controller *host.Controller, maintenance *ho
 		"CaptureDisplays": "screenshot", "Screenshot": "screenshot",
 		"StartDownload": "downloads", "ListDownloads": "downloads", "CancelDownload": "downloads", "RetryDownload": "downloads", "OpenDownload": "downloads", "RemoveDownload": "downloads",
 		"ClipboardText": "clipboard", "ClipboardImage": "clipboard", "Notify": "notifications", "SetShortcut": "shortcuts", "ConfigureProtocol": "protocol", "Credential": "credentials",
-		"GetSettings": "settings", "SaveSettings": "settings", "SavePreferences": "settings", "ResetPreferences": "settings",
+		"GetSettings": "settings", "SaveSettings": "settings", "SavePreferences": "settings", "ResetPreferences": "settings", "ReloadIcons": "settings",
 	})
 	return nil
 }

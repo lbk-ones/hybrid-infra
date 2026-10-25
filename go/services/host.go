@@ -9,6 +9,22 @@ import (
 // HostService 是前端查询宿主状态、登记任务和请求退出的服务入口，先检查权限再调用管理器。
 type HostService struct{ controller *host.Controller }
 
+// GetStartupState 检查 host 能力后读取启动状态，管理器还会验证调用者确为内置启动屏。
+func (s *HostService) GetStartupState(ctx context.Context) (host.StartupState, error) {
+	if err := host.Require(ctx, "host"); err != nil {
+		return host.StartupState{}, err
+	}
+	return s.controller.GetStartupState(ctx)
+}
+
+// DismissSplash 检查 host 能力后跳过启动屏，不能通过参数指定或操控其他窗口。
+func (s *HostService) DismissSplash(ctx context.Context) error {
+	if err := host.Require(ctx, "host"); err != nil {
+		return err
+	}
+	return s.controller.DismissSplash(ctx)
+}
+
 // GetEnvironment 通过真实调用窗口判断桌面外壳环境；普通浏览器即使连接到宿主也不会被误判为原生窗口。
 func (s *HostService) GetEnvironment(ctx context.Context) (host.EnvironmentInfo, error) {
 	if err := host.Require(ctx, "host"); err != nil {

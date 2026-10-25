@@ -82,6 +82,8 @@ type Controller struct {
 	closeHandlers     []func(string)
 	nativeHandlers    []func(application.Window, string, *application.OriginInfo) bool
 	mainReadyHandlers []func()
+	icons             *IconManager
+	splash            *startupScreen
 }
 
 // New 创建宿主管理器，读取已有窗口状态，并初始化窗口、任务和权限登记表。此时尚未绑定 Wails 应用。
@@ -185,6 +187,10 @@ func (c *Controller) InitialOptions() application.WebviewWindowOptions {
 		width, height = 1280, 800
 	}
 	options := application.WebviewWindowOptions{Name: "main-window", Title: c.config.Title, Width: max(width, c.config.MinWidth), Height: max(height, c.config.MinHeight), MinWidth: c.config.MinWidth, MinHeight: c.config.MinHeight, Frameless: c.config.Frameless, StartState: state, URL: StatusPage, BackgroundColour: application.NewRGB(246, 248, 247), Permissions: webPermissions()}
+	options.Hidden = c.config.SplashEnabled
+	if !c.config.SplashEnabled {
+		options.URL = StatusPage + "?startup=quiet"
+	}
 	if saved, ok := c.store.get("main-window"); ok && c.config.RememberWindows {
 		options.Width = max(saved.Bounds.Width, c.config.MinWidth)
 		options.Height = max(saved.Bounds.Height, c.config.MinHeight)
@@ -253,6 +259,9 @@ func (c *Controller) track(w application.Window, options utils.NewWindowOptions,
 	c.windows[w.Name()] = e
 	c.mu.Unlock()
 	w.OnWindowEvent(events.Common.WindowRuntimeReady, func(*application.WindowEvent) {
+		if c.icons != nil {
+			c.icons.ApplyWindow(w)
+		}
 		if w.Name() == "main-window" {
 			for _, handler := range c.mainReadyHandlers {
 				handler()
@@ -481,6 +490,10 @@ func wake(w application.Window) {
 
 // WakeMain 唤醒已经登记的主窗口；应用尚未创建主窗口时直接返回。
 func (c *Controller) WakeMain() {
+	if c.splash != nil && !c.splash.inactive() {
+		c.splash.finish(true)
+		return
+	}
 	if e := c.getEntry("main-window"); e != nil {
 		wake(e.window)
 	}
@@ -605,6 +618,7 @@ func (c *Controller) failLoadGeneration(id, code, message string, generation uin
 	e.generation++
 	c.mu.Unlock()
 	e.window.SetURL(StatusPage)
+	c.finishStartup(id)
 }
 
 // caller 从授权上下文读取真实调用窗口名，不使用网页可填写的目标窗口名；可信 Go 调用和测试可回退到 Wails 窗口上下文。
@@ -647,6 +661,7 @@ func (c *Controller) PageReady(ctx context.Context) error {
 		e.status = "ready"
 	}
 	c.mu.Unlock()
+	c.finishStartup(id)
 	return nil
 }
 
@@ -921,6 +936,7 @@ func (c *Controller) NativeMessage(w application.Window, message string, source 
 	e.status = "ready"
 	e.loadError = nil
 	c.mu.Unlock()
+	c.finishStartup(w.Name())
 }
 
 // confirmWindowClose 为仍有任务的子窗口显示关闭确认框；仅在用户确认后放行关闭，并避免同时弹出多个确认框。

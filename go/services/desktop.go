@@ -187,6 +187,14 @@ func (s *DesktopService) SaveSettings(ctx context.Context, config setting.PkgInf
 	return s.desktop.SaveSettings(config)
 }
 
+// ReloadIcons 检查设置权限后重新加载磁盘中的图标地址，立即更新托盘和运行中窗口。
+func (s *DesktopService) ReloadIcons(ctx context.Context) (host.SettingsSnapshot, error) {
+	if err := host.Require(ctx, "settings"); err != nil {
+		return host.SettingsSnapshot{}, err
+	}
+	return s.desktop.ReloadIcons(ctx)
+}
+
 // SavePreferences 保存主题、语言和通知偏好，无须重启。
 func (s *DesktopService) SavePreferences(ctx context.Context, p host.Preferences) (host.Preferences, error) {
 	if err := host.Require(ctx, "settings"); err != nil {

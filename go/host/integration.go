@@ -156,16 +156,34 @@ type SettingsSnapshot struct {
 	RestartRequired bool             `json:"restartRequired"`
 }
 
-// GetSettings 读取磁盘已保存配置并与启动快照比较；偏好即时生效，窗口、安全来源等启动配置统一在下次启动应用。
+// GetSettings 读取已保存配置并与生效快照比较；图标使用最近成功重载的配置，窗口和安全来源仍使用启动快照。
 func (d *Desktop) GetSettings() (SettingsSnapshot, error) {
 	data, _ := json.Marshal(d.Controller.config)
 	var active setting.PkgInfo
 	_ = json.Unmarshal(data, &active)
+	if d.Controller.icons != nil {
+		active.Icons = d.Controller.icons.ActiveConfig()
+	}
 	saved, err := setting.New().Parse()
 	if err != nil {
 		return SettingsSnapshot{}, Fail("E_SETTINGS", "磁盘配置无法读取或校验失败")
 	}
 	return SettingsSnapshot{Active: &active, Saved: saved, Preferences: d.GetPreferences(), RestartRequired: !reflect.DeepEqual(active, *saved)}, nil
+}
+
+// ReloadIcons 读取固定配置文件中的图标设置并立即替换；地址加载失败保留现有图标，不更改来源权限。
+func (d *Desktop) ReloadIcons(ctx context.Context) (SettingsSnapshot, error) {
+	if d.Controller.icons == nil {
+		return SettingsSnapshot{}, Fail("E_UNSUPPORTED", "当前宿主尚未安装图标管理器")
+	}
+	config, err := setting.New().Parse()
+	if err != nil {
+		return SettingsSnapshot{}, Fail("E_SETTINGS", "图标配置无法读取或校验失败")
+	}
+	if err = d.Controller.icons.Reload(ctx, config.Icons); err != nil {
+		return SettingsSnapshot{}, err
+	}
+	return d.GetSettings()
 }
 
 // SaveSettings 校验完整启动配置后原子保存；运行中的权限和窗口不热更新，避免并发调用时策略一半新一半旧。

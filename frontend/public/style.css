@@ -84,7 +84,7 @@ svg {
   line-height: 1.2;
 }
 .brand-mark {
-  background: #15745f;
+  background: transparent;
   color: #fff;
   border-radius: 12px;
   display: grid;

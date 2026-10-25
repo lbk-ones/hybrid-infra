@@ -15,6 +15,38 @@ import (
 
 type Setting struct{}
 
+// IconConfig 为运行时窗口和托盘指定 PNG，本地相对路径以配置文件目录为基准；留空使用内置品牌图标。
+type IconConfig struct {
+	Application string `json:"application"`
+	Tray        string `json:"tray"`
+}
+
+// Validate 检查图标地址语法；实际大小和 PNG 内容由宿主加载时校验，不访问网络或读取文件。
+func (c IconConfig) Validate() error {
+	for _, value := range []string{c.Application, c.Tray} {
+		if value == "" {
+			continue
+		}
+		if len(value) > 4096 || strings.ContainsAny(value, "\x00\r\n") || strings.HasPrefix(value, `\\`) || strings.HasPrefix(value, "//") {
+			return errors.New("icons only supports local PNG paths or HTTPS URLs")
+		}
+		if filepath.IsAbs(value) {
+			continue
+		}
+		u, err := url.Parse(value)
+		if err != nil {
+			return errors.New("invalid icon address")
+		}
+		if u.Scheme == "" && u.Host == "" {
+			continue
+		}
+		if u.Host == "" || u.User != nil || u.Fragment != "" || (u.Scheme != "https" && !(u.Scheme == "http" && (u.Hostname() == "localhost" || u.Hostname() == "127.0.0.1" || u.Hostname() == "::1"))) {
+			return errors.New("icon URL requires HTTPS without credentials or fragment")
+		}
+	}
+	return nil
+}
+
 // UpdateConfig 固定更新信任根和频道；默认关闭，公钥由发布者离线生成，前端不能临时指定下载地址或签名密钥。
 type UpdateConfig struct {
 	Enabled        bool   `json:"enabled"`
@@ -25,6 +57,8 @@ type UpdateConfig struct {
 	AutoDownload   bool   `json:"autoDownload"`
 }
 type PkgInfo struct {
+	SplashEnabled       bool                `json:"splashEnabled"` // 是否显示独立启动屏；默认开启，关闭后静默引导并直接显示主窗口。
+	Icons               IconConfig          `json:"icons"`
 	Updates             UpdateConfig        `json:"updates"`
 	ShellPrograms       []string            `json:"shellPrograms"` // 允许程序模式执行的程序；启动时解析为固定绝对路径，默认空列表。
 	Title               string              `json:"title"`
@@ -95,7 +129,7 @@ func ConfigPath() (string, error) {
 
 // Parse 填充默认配置后读取选中的 JSON 文件并校验；没有配置文件时使用默认值，显式配置错误时返回错误。
 func (*Setting) Parse() (*PkgInfo, error) {
-	config := &PkgInfo{Title: "Hybrid App", Url: "/", SingleInstance: true, CloseBehavior: "exit", RememberWindows: true, MinWidth: 800, MinHeight: 600, LoadTimeoutSeconds: 30, ExternalLinks: "browser"}
+	config := &PkgInfo{SplashEnabled: true, Title: "Hybrid App", Url: "/", SingleInstance: true, CloseBehavior: "exit", RememberWindows: true, MinWidth: 800, MinHeight: 600, LoadTimeoutSeconds: 30, ExternalLinks: "browser"}
 	path, err := ConfigPath()
 	if err != nil {
 		return nil, err
@@ -118,6 +152,9 @@ func (*Setting) Parse() (*PkgInfo, error) {
 
 // validate 检查窗口尺寸、关闭方式、加载超时、导航地址和能力名称等配置，拒绝无法识别或不安全的取值。
 func (p *PkgInfo) validate() error {
+	if err := p.Icons.Validate(); err != nil {
+		return err
+	}
 	if p.Updates.Channel == "" {
 		p.Updates.Channel = "stable"
 	}
