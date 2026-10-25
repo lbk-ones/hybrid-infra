@@ -45,6 +45,7 @@ type commandJob struct {
 	stdout, stderr []byte
 	cancel         context.CancelFunc
 	done           chan struct{}
+	observed       string
 }
 
 // CommandManager 管理有限数量的后台进程和输出，绑定窗口退出保护；它提供操作系统命令能力，不是进程安全沙箱。
@@ -206,6 +207,9 @@ func (m *CommandManager) Start(ctx context.Context, o CommandOptions) (CommandIn
 	initial := job.info
 	m.mu.Unlock()
 	stop()
+	if m.controller.taskCenter != nil {
+		job.observed = m.controller.taskCenter.observeNative(ctx, "shell", "桌面命令", &o, "", "", func() { _ = m.Cancel(taskContext(ctx), id) })
+	}
 	// 取消监视与 Wait 分开运行，避免把进程退出误判为取消；系统句柄只由收尾协程释放。
 	go func() {
 		select {
@@ -220,7 +224,6 @@ func (m *CommandManager) Start(ctx context.Context, o CommandOptions) (CommandIn
 		cleanup()
 		_ = m.controller.EndTask(ctx, task.ID)
 		m.mu.Lock()
-		defer m.mu.Unlock()
 		if cmd.ProcessState != nil {
 			job.info.ExitCode = cmd.ProcessState.ExitCode()
 		}
@@ -237,6 +240,19 @@ func (m *CommandManager) Start(ctx context.Context, o CommandOptions) (CommandIn
 			job.info.State = "completed"
 		}
 		cancel()
+		info := job.info
+		m.mu.Unlock()
+		if m.controller.taskCenter != nil {
+			var failure error
+			if info.Error != nil {
+				failure = info.Error
+			}
+			state := info.State
+			if state == "timed_out" {
+				state = "failed"
+			}
+			m.controller.taskCenter.observeProgress(job.observed, -1, state, failure)
+		}
 	}()
 	return initial, nil
 }

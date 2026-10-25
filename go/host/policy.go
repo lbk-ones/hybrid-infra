@@ -19,7 +19,7 @@ import (
 )
 
 // Capabilities 列出当前外壳开放的能力名称；它不是任意页面默认拥有的权限清单。
-var Capabilities = []string{"host", "windows", "ui", "ui.html", "store", "log", "lifecycle", "events", "files", "downloads", "clipboard", "notifications", "shortcuts", "settings", "credentials", "protocol", "shell", "shell.script", "cache", "cache.global", "events.global", "screenshot", "diagnostics", "updates", "backups"}
+var Capabilities = []string{"host", "windows", "ui", "ui.html", "store", "log", "lifecycle", "events", "files", "downloads", "clipboard", "notifications", "shortcuts", "settings", "credentials", "protocol", "shell", "shell.script", "cache", "cache.global", "events.global", "screenshot", "diagnostics", "updates", "backups", "tasks", "tasks.manage", "database"}
 
 // defaultCapabilities 保留第一阶段的默认授权；涉及磁盘和系统集成的新能力必须显式开启。
 var defaultCapabilities = []string{"host", "windows", "ui", "ui.html", "store", "log", "lifecycle", "events"}
@@ -252,7 +252,7 @@ func (p *Policy) Middleware(next http.Handler) http.Handler {
 			writeError(w, 403, Fail("E_PERMISSION_DENIED", "当前来源没有调用该能力的权限"))
 			return
 		}
-		if capability == "store" || capability == "settings" {
+		if capability == "store" || capability == "settings" || capability == "database" {
 			p.dataGate.RLock()
 			defer p.dataGate.RUnlock()
 		}

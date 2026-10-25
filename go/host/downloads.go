@@ -28,11 +28,12 @@ type DownloadInfo struct {
 }
 type downloadEntry struct {
 	DownloadInfo
-	owner  string
-	target FileGrant
-	ctx    context.Context
-	cancel context.CancelFunc
-	task   Task
+	owner    string
+	target   FileGrant
+	ctx      context.Context
+	cancel   context.CancelFunc
+	task     Task
+	observed string
 }
 
 // downloadURL 只接受不带凭据的 HTTP(S) 地址；不允许 file、data、协议相对地址或包含换行的输入。
@@ -54,7 +55,12 @@ func (d *Desktop) StartDownload(ctx context.Context, raw, token string) (Downloa
 		return DownloadInfo{}, err
 	}
 	d.mu.Lock()
-	defer d.mu.Unlock()
+	locked := true
+	defer func() {
+		if locked {
+			d.mu.Unlock()
+		}
+	}()
 	running := 0
 	for _, e := range d.downloads {
 		if e.State == "running" {
@@ -82,9 +88,14 @@ func (d *Desktop) StartDownload(ctx context.Context, raw, token string) (Downloa
 	background, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	e := &downloadEntry{DownloadInfo: DownloadInfo{ID: id, URL: raw, Name: g.Name, State: "running", Total: -1, CreatedAt: time.Now()}, owner: resourceOwner(ctx), target: g, ctx: background, cancel: cancel, task: task}
 	d.downloads[id] = e
+	d.mu.Unlock()
+	locked = false
+	if d.Controller.taskCenter != nil {
+		e.observed = d.Controller.taskCenter.observeNative(ctx, "download", "下载 "+g.Name, nil, raw, token, func() { _ = d.CancelDownload(taskContext(ctx), id) })
+	}
 	// 下载在独立协程中运行，直到完成、用户取消、30 分钟超时或应用退出；退出保护在收尾时释放。
 	go d.transfer(ctx, e)
-	return e.DownloadInfo, nil
+	return DownloadInfo{ID: id, URL: raw, Name: g.Name, State: "running", Total: -1, CreatedAt: e.CreatedAt}, nil
 }
 
 // transfer 流式下载到同目录临时文件，只有完整成功且目标仍符合原授权时才原子替换，失败和取消都清理临时内容。
@@ -94,7 +105,6 @@ func (d *Desktop) transfer(ownerCtx context.Context, e *downloadEntry) {
 		e.cancel()
 		_ = d.Controller.EndTask(ownerCtx, e.task.ID)
 		d.mu.Lock()
-		defer d.mu.Unlock()
 		if result == nil {
 			e.State = "completed"
 		} else if errors.Is(result, context.Canceled) {
@@ -103,6 +113,15 @@ func (d *Desktop) transfer(ownerCtx context.Context, e *downloadEntry) {
 		} else {
 			e.State = "failed"
 			e.Error = &Error{Code: "E_DOWNLOAD_FAILED", Message: "下载失败，请检查网络、地址、磁盘权限或文件大小后重试"}
+		}
+		value := e.DownloadInfo
+		d.mu.Unlock()
+		if d.Controller.taskCenter != nil {
+			var failure error
+			if value.Error != nil {
+				failure = value.Error
+			}
+			d.Controller.taskCenter.observeProgress(e.observed, -1, value.State, failure)
 		}
 	}()
 	req, err := http.NewRequestWithContext(e.ctx, http.MethodGet, e.URL, nil)
@@ -154,7 +173,17 @@ func (d *Desktop) transfer(ownerCtx context.Context, e *downloadEntry) {
 			d.mu.Lock()
 			e.Received += int64(written)
 			tooLarge := e.Received > maxDownloadBytes
+			progress := -1
+			if e.Total > 0 {
+				progress = int(e.Received * 100 / e.Total)
+				if progress > 100 {
+					progress = 100
+				}
+			}
 			d.mu.Unlock()
+			if d.Controller.taskCenter != nil {
+				d.Controller.taskCenter.observeProgress(e.observed, progress, "running", nil)
+			}
 			if tooLarge {
 				result = errors.New("download too large")
 				return

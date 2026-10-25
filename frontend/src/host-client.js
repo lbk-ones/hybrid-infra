@@ -11,7 +11,11 @@ import { createShell } from "./shell-client.js";
 import * as UIBindings from "../bindings/hybrid-infra/go/services/uiservice.js";
 import { createUI } from "./ui-client.js";
 import { createClient } from "./sdk-core.js";
-export { Host, Windows, Desktop, Cache, Maintenance };
+import * as Database from "../bindings/hybrid-infra/go/services/databaseservice.js";
+import * as TaskService from "../bindings/hybrid-infra/go/services/taskservice.js";
+import { createTasks } from "./tasks-client.js";
+export const Tasks = createTasks(TaskService);
+export { Host, Windows, Desktop, Cache, Maintenance, Database };
 export * as Store from "../bindings/github.com/wailsapp/wails/v3/pkg/services/kvstore/kvstoreservice.js";
 export * as Log from "../bindings/github.com/wailsapp/wails/v3/pkg/services/log/logservice.js";
 export { HybridError, normalizeError } from "./sdk-core.js";
@@ -22,4 +26,5 @@ export const UI = createUI(UIBindings);
 if (typeof window !== "undefined")
   window.addEventListener("pagehide", () => {
     void Events.close().catch(() => {});
+    Tasks.dispose();
   });

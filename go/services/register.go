@@ -36,10 +36,23 @@ func Register(app *application.App, controller *host.Controller, maintenance *ho
 	app.OnShutdown(maintenance.CancelUpdate)
 	bus := host.NewEventBus()
 	commands := host.NewCommandManager(controller)
+	database, err := host.OpenBusinessDatabase(dir)
+	if err != nil {
+		return fmt.Errorf("open business database: %w", err)
+	}
+	center, err := host.NewTaskCenter(controller, database, commands, desktop)
+	if err != nil {
+		database.Close()
+		return err
+	}
+	controller.AttachTaskCenter(center)
+	maintenance.AttachDatabase(database)
+	register(application.NewService(&DatabaseService{database}), "database", nil)
+	register(application.NewService(&TaskService{center}), "tasks", nil)
 	controller.OnResourceWindowClosed(bus.CloseWindow)
 	controller.OnResourceWindowClosed(commands.CloseWindow)
 	app.OnShutdown(bus.Shutdown)
-	app.OnShutdown(commands.Shutdown)
+	app.OnShutdown(func() { center.Shutdown(); commands.Shutdown(); _ = database.Close() })
 	register(application.NewService(&CacheService{cache: host.NewSharedCache()}), "cache", nil)
 	register(application.NewService(&EventService{bus: bus}), "events", nil)
 	register(application.NewService(&ShellService{commands: commands}), "shell", nil)

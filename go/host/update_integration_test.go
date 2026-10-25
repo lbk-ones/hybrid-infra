@@ -108,7 +108,7 @@ func TestRealUpdateWorker(t *testing.T) {
 			}
 			b, _ := os.ReadFile(candidate)
 			hash := sha256.Sum256(b)
-			manifest := UpdateManifest{Schema: 1, Version: "0.2.0", Channel: "stable", Platform: runtime.GOOS, Arch: runtime.GOARCH, URL: "https://example.invalid/fixture.exe", Size: int64(len(b)), SHA256: hex.EncodeToString(hash[:]), MaxDataSchema: 1}
+			manifest := UpdateManifest{Schema: 1, Version: "0.2.0", Channel: "stable", Platform: runtime.GOOS, Arch: runtime.GOARCH, URL: "https://example.invalid/fixture.exe", Size: int64(len(b)), SHA256: hex.EncodeToString(hash[:]), MaxDataSchema: DataSchema}
 			signed, config := signedFixture(t, manifest)
 			// 父进程 PID 只能由启动后的实际进程写入，使用票据预备模式避免猜测进程身份。
 			ticket := updateTicket{ID: id, Target: target, DataDir: dir, OldVersion: "0.1.0", NewVersion: "0.2.0", Signed: signed, Config: config, Hash: manifest.SHA256}

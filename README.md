@@ -71,7 +71,7 @@ KV 写入该目录的 `store.json`，不再写入启动工作目录。**原根�
 ```shell
 go test ./...
 go vet ./...
-node --test scripts/hybrid-client.test.mjs scripts/sdk-core.test.mjs scripts/bridge-client.test.mjs scripts/ui-client.test.mjs
+node --test scripts/*.test.mjs
 wails3 task build
 ```
 
@@ -82,6 +82,8 @@ Go 弹框边界测试会调用 Node，因此运行 Go 测试也需要 Node.js。
 - [第一阶段宿主能力、配置与验收](docs/phase1-host.md)
 - [第二阶段桌面能力、授权与 SDK 接入](docs/phase2-desktop.md)
 - [第三阶段诊断、备份迁移与签名更新](docs/phase3-maintenance.md)
+- [第四阶段应用隔离与配置中心](docs/phase4-identity-settings.md)
+- [第五阶段统一任务中心与本地数据库](docs/phase5-tasks-database.md)
 - [品牌图标、托盘与任务栏图标动态替换](docs/application-icons.md)
 - [启动屏、加载动画与配置开关](docs/startup-splash.md)
 - [内置开发文档、托盘入口与 F12 命令](docs/developer-guide.md)

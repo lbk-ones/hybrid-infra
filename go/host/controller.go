@@ -68,6 +68,7 @@ type Controller struct {
 	app               *application.App
 	config            *setting.PkgInfo
 	dataDir           string
+	taskCenter        *TaskCenter
 	Policy            *Policy
 	store             *stateStore
 	mu                sync.RWMutex // 保护窗口登记、加载状态和任务列表，不应在持锁时调用原生窗口接口。
@@ -94,6 +95,12 @@ func New(config *setting.PkgInfo, dir string) *Controller {
 
 // DataDirectory 返回启动时固定的数据目录，服务注册和运行中的设置读写不重新解析部署身份。
 func (c *Controller) DataDirectory() string { return c.dataDir }
+
+// AttachTaskCenter 在运行前接入统一任务观察器，并按真实窗口关闭事件清理排队、回调租约和内存重试参数。
+func (c *Controller) AttachTaskCenter(center *TaskCenter) {
+	c.taskCenter = center
+	c.OnResourceWindowClosed(center.CloseWindow)
+}
 
 // Attach 绑定 Wails 应用，监听启动、显示器变化和系统唤醒事件；应用退出时停止加载计时器并保存窗口状态。
 func (c *Controller) Attach(app *application.App) {
@@ -819,6 +826,11 @@ func (c *Controller) InstallTray(icon []byte) {
 	})
 	menu.AddSeparator()
 	menu.Add("显示主窗口").OnClick(func(*application.Context) { c.WakeMain() })
+	menu.Add("任务与数据中心").OnClick(func(*application.Context) {
+		if _, err := c.Open(utils.NewWindowOptions{Name: "tasks-console", Title: "任务与数据中心", Url: "/shell/tasks.html", Width: 1160, Height: 880}); err != nil {
+			c.app.Logger.Warn("open task center", "code", "E_TASKS_OPEN")
+		}
+	})
 	menu.Add("配置中心").OnClick(func(*application.Context) {
 		if _, err := c.Open(utils.NewWindowOptions{Name: "settings-console", Title: "配置中心", Url: "/shell/settings.html", Width: 1120, Height: 900}); err != nil {
 			c.app.Logger.Warn("open settings center", "code", "E_SETTINGS_OPEN")

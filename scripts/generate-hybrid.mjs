@@ -89,7 +89,13 @@ try {
   await rewrite(bindings);
   await cp(path.join(root, "scripts/hybrid-client.js"), path.join(output, "client.js"));
   await cp(path.join(root, "frontend/src/sdk-core.js"), path.join(output, "sdk-core.js"));
-  for (const filename of ["environment.js", "events-client.js", "shell-client.js", "ui-client.js"])
+  for (const filename of [
+    "environment.js",
+    "events-client.js",
+    "shell-client.js",
+    "ui-client.js",
+    "tasks-client.js",
+  ])
     await cp(path.join(root, "frontend/src", filename), path.join(output, filename));
   await writeFile(
     path.join(output, "manifest.json"),

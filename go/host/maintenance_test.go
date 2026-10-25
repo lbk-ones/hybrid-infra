@@ -133,7 +133,7 @@ func signedFixture(t *testing.T, manifest UpdateManifest) (SignedUpdate, setting
 
 // TestSignedUpdateVerification 验证签名、平台、数据版本、来源和版本比较的拒绝边界。
 func TestSignedUpdateVerification(t *testing.T) {
-	manifest := UpdateManifest{Schema: 1, Version: "0.2.0", Channel: "stable", Platform: runtime.GOOS, Arch: runtime.GOARCH, URL: "https://example.com/app.exe", SHA256: strings.Repeat("a", 64), Size: 100, MaxDataSchema: 1}
+	manifest := UpdateManifest{Schema: 1, Version: "0.2.0", Channel: "stable", Platform: runtime.GOOS, Arch: runtime.GOARCH, URL: "https://example.com/app.exe", SHA256: strings.Repeat("a", 64), Size: 100, MaxDataSchema: DataSchema}
 	signed, config := signedFixture(t, manifest)
 	if _, e := verifyUpdate(signed, config); e != nil {
 		t.Fatal(e)
@@ -167,7 +167,7 @@ func TestUpdateDownload(t *testing.T) {
 		t.Fatal(e)
 	}
 	hash := sha256.Sum256(artifact)
-	manifest := UpdateManifest{Schema: 1, Version: "0.2.0", Channel: "stable", Platform: runtime.GOOS, Arch: runtime.GOARCH, Size: int64(len(artifact)), SHA256: hex.EncodeToString(hash[:]), MaxDataSchema: 1}
+	manifest := UpdateManifest{Schema: 1, Version: "0.2.0", Channel: "stable", Platform: runtime.GOOS, Arch: runtime.GOARCH, Size: int64(len(artifact)), SHA256: hex.EncodeToString(hash[:]), MaxDataSchema: DataSchema}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write(artifact) }))
 	defer server.Close()
 	manifest.URL = server.URL

@@ -57,7 +57,7 @@ export async function packageRelease({
     buildInfo.version !== version ||
     buildInfo.platform !== "windows" ||
     buildInfo.arch !== arch ||
-    buildInfo.dataSchema !== 1
+    ![1, 2].includes(buildInfo.dataSchema)
   )
     throw new Error("EXE 版本、平台或数据版本不匹配；先执行 wails3 task build VERSION=" + version);
   const key = createPrivateKey(await readFile(keyFile));
@@ -73,7 +73,7 @@ export async function packageRelease({
       sha256: createHash("sha256").update(bytes).digest("hex"),
       size: bytes.length,
       minDataSchema: 0,
-      maxDataSchema: 1,
+      maxDataSchema: buildInfo.dataSchema,
     }),
   );
   const signature = sign(null, payload, key);

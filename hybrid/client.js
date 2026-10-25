@@ -17,7 +17,11 @@ import * as ShellService from "./bindings/hybrid-infra/go/services/shellservice.
 import { createEvents } from "./events-client.js";
 import { createShell } from "./shell-client.js";
 import { createClient } from "./sdk-core.js";
-export { Host, Windows, Desktop, Cache, Maintenance };
+import * as Database from "./bindings/hybrid-infra/go/services/databaseservice.js";
+import * as TaskService from "./bindings/hybrid-infra/go/services/taskservice.js";
+import { createTasks } from "./tasks-client.js";
+export const Tasks = createTasks(TaskService);
+export { Host, Windows, Desktop, Cache, Maintenance, Database };
 export { HybridError, normalizeError } from "./sdk-core.js";
 export const Hybrid = createClient(Host);
 export const Events = createEvents(EventService, Hybrid.call);
@@ -26,6 +30,7 @@ export const Shell = createShell(ShellService, Hybrid.call);
 if (typeof window !== "undefined")
   window.addEventListener("pagehide", () => {
     void Events.close().catch(() => {});
+    Tasks.dispose();
   });
 
 // 独立前端可以直接导入此文件；首次服务调用前按需配置宿主来源，不依赖特定前端框架。

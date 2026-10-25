@@ -78,6 +78,86 @@ const fileNote =
 
 // 为所有有参数的方法提供可填写的示例；无参数方法由 getMethodExample 生成直接调用模板。
 const examples = {
+  "Tasks.Create": example([
+    text("title", "手动任务", "创建后必须 Poll 领取并持续续租，推荐直接用 run。"),
+  ]),
+  "Tasks.Poll": example([
+    text("id", "任务ID", "从本窗口 Tasks.Create 结果复制；其他页面不能代领。"),
+  ]),
+  "Tasks.Report": example([
+    text("id", "任务ID", "填写本窗口已领取的业务任务。"),
+    number("progress", 50, "-1 未知，0–100 表示百分比。"),
+    text("message", "已处理一半", "简短进度说明。"),
+  ]),
+  "Tasks.Finish": example([
+    text("id", "任务ID", "仅在函数实际结束后调用。"),
+    text("state", "completed", "completed、failed 或 cancelled。"),
+    text("message", "处理完成", "结果说明，不要放秘密值。"),
+  ]),
+  "Tasks.Retry": example([text("id", "任务ID", "本窗口终态原生任务，内存参数和权限必须有效。")]),
+  "Tasks.canRetry": example([text("id", "任务ID", "仅判断当前页面是否保留业务函数。")], {
+    sync: true,
+  }),
+  "Tasks.dispose": example([], {
+    sync: true,
+    note: "清理整个页面的业务客户端，后续 run 需要刷新页面。",
+  }),
+  "Tasks.run": example([
+    text("title", "进度演示", "任务说明。"),
+    source(
+      "operation",
+      "async ({ signal, report }) => { if (signal.aborted) throw new Error('已取消'); await report(100, '演示完成'); return {done:true}; }",
+      "函数在本页执行，不传到 Go。",
+    ),
+    json("options", {}, "可传 signal 和 onProgress。"),
+  ]),
+  "Tasks.Cancel": example([text("id", "任务ID", "从 Tasks.List 复制。")]),
+  "Tasks.retry": example([text("id", "任务ID", "原生参数或本页业务回调仍有效时才能重试。")]),
+  "Tasks.Remove": example([text("id", "任务ID", "仅移除终态历史。")]),
+  "Tasks.EnqueueShell": example([text("title", "命令演示", "任务说明。"), commandOptions]),
+  "Tasks.EnqueueDownload": example([
+    text("title", "下载演示", "任务说明。"),
+    text("url", "https://example.com/file.zip", "文件下载地址。"),
+    token,
+  ]),
+  "Database.Get": example([
+    text("collection", "docs-demo", "集合名称。"),
+    text("id", "order-001", "记录 ID。"),
+  ]),
+  "Database.Query": example([
+    json(
+      "query",
+      { collection: "docs-demo", where: {}, offset: 0, limit: 20, sortBy: "id", descending: false },
+      "按 nextOffset 继续分页。",
+    ),
+  ]),
+  "Database.Put": example([
+    text("collection", "docs-demo", "演示集合。"),
+    text("id", "order-001", "记录 ID。"),
+    json("data", { status: "draft", amount: 128 }, "JSON 对象。"),
+    number("revision", 0, "0 仅新建，-1 覆盖，正数校验版本。"),
+  ]),
+  "Database.Delete": example([
+    text("collection", "docs-demo", "集合名称。"),
+    text("id", "order-001", "记录 ID。"),
+    number("revision", 1, "最新版本，避免误删更新。"),
+  ]),
+  "Database.Batch": example([
+    json(
+      "changes",
+      [
+        {
+          operation: "put",
+          collection: "docs-demo",
+          id: "batch-001",
+          data: { status: "draft" },
+          revision: 0,
+        },
+      ],
+      "最多100项，有一项失败全部回滚。",
+      "array",
+    ),
+  ]),
   "Hybrid.connect": example([
     json(
       "options",

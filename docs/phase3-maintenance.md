@@ -32,9 +32,9 @@
 
 ## 数据快照与迁移
 
-快照保存在数据目录 `backups/<随机ID>.zip`，内容严格限于 `store.json`、`preferences.json`、`window-state.json`、`data-version.json`。**不包含启动权限配置、系统凭据和日志**。业务 KV 本身可能含敏感信息，快照是本机普通文件，没有额外加密。
+快照保存在数据目录 `backups/<随机ID>.zip`，内容严格限于 `store.json`、`preferences.json`、`window-state.json`、`data-version.json` 和数据库逻辑快照 `business-data.json`。**不包含启动权限配置、系统凭据和日志**。业务 KV 本身可能含敏感信息，快照是本机普通文件，没有额外加密。
 
-`CreateBackup()` 阻塞 Store/设置 RPC 的磁盘写入后生成快照。每个文件最多 16 MiB、总解压内容最多 48 MiB；恢复前验证路径白名单、重复条目、JSON、数据版本、完整条目数和 SHA256。恢复 ID 只能是随机 32 位十六进制，不能传入任意路径。
+`CreateBackup()` 阻塞 Store/设置/数据库 RPC 的磁盘写入后生成快照，数据库自身的后台任务状态通过数据库锁导出一致快照。每个文件最多 16 MiB、总解压内容最多 48 MiB；恢复前验证路径白名单、重复条目、JSON、数据版本、完整条目数和 SHA256。恢复 ID 只能是随机 32 位十六进制，不能传入任意路径。数据库与任务接入及旧备份恢复行为见[第五阶段](phase5-tasks-database.md)。
 
 `StageRestore(id)` 只排队，不修改正在运行的 KV。下次启动先另存当前数据，再恢复全部白名单文件；写入失败时还原旧文件。随后服务才加载业务数据。关闭应用与重新启动之间新增的业务修改会被待恢复快照覆盖。
 
@@ -54,7 +54,7 @@ node scripts/package-release.mjs --exe bin/hybrid-infra.exe --version 0.2.0 --ch
 
 输出 EXE、`manifest.json` 和 `public-key.txt`。工具先校验 PE 架构，再通过 EXE 的 `--hybrid-release-info` 只读入口确认实际版本，避免误签。将 EXE 部署到 `--url` 所指定地址，将清单部署到启动配置的 `manifestUrl`；公钥固定写入用户配置，私钥不上传。
 
-清单采用 `{payload: Base64(JSON原始字节), signature: Base64(Ed25519签名)}`。载荷绑定协议、版本、频道、平台、架构、下载 URL、文件长度、SHA256 和数据兼容范围。版本目前只接受 `major.minor.patch` 三个整数；stable/beta 是发布频道，暂不接受 SemVer 预发布后缀。当前发布工具绑定 Schema 0–1；后续升级数据格式时需同步审查迁移和清单兼容范围。
+清单采用 `{payload: Base64(JSON原始字节), signature: Base64(Ed25519签名)}`。载荷绑定协议、版本、频道、平台、架构、下载 URL、文件长度、SHA256 和数据兼容范围。版本目前只接受 `major.minor.patch` 三个整数；stable/beta 是发布频道，暂不接受 SemVer 预发布后缀。当前发布工具按目标 EXE 声明数据兼容范围；本版本为 Schema 0–2；后续升级数据格式时需同步审查迁移和清单兼容范围。
 
 Ed25519 是应用更新信任链，不替代 Windows Authenticode。仓库已有 `wails3 task windows:sign`、NSIS/MSIX 打包任务；需要正式证书、对应工具及发布环境自行配置。本次没有申请证书、签名系统安装器或上传正式发布。
 

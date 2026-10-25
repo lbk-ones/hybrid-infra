@@ -117,7 +117,7 @@ export function createExampleRunner(sdk, onChange = () => {}) {
         args[0] = { ...snapshot.saved, ...args[0] };
       }
       if (name === "Shell.run") args[1] = { ...args[1], signal: entry.controller.signal };
-      if (["Events.request", "Hybrid.call", "Hybrid.withTask"].includes(name))
+      if (["Events.request", "Hybrid.call", "Hybrid.withTask", "Tasks.run"].includes(name))
         args[args.length - 1] = { ...args.at(-1), signal: entry.controller.signal };
       // 回调的参数和返回值都可见，即使用户没写 console.log，也能观察消息与异步返回。
       if (

@@ -573,6 +573,257 @@ export class DirectoryEntry {
 }
 
 /**
+ * Document 是带乐观锁版本的业务 JSON 记录，时间使用 Unix 毫秒，数据按应用目录和网页来源隔离。
+ */
+export class Document {
+    /**
+     * Creates a new Document instance.
+     * @param {Partial<Document>} [$$source = {}] - The source object to create the Document.
+     */
+    constructor($$source = {}) {
+        if (!("collection" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["collection"] = "";
+        }
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("data" in $$source)) {
+            /**
+             * @member
+             * @type {json$0.RawMessage}
+             */
+            this["data"] = null;
+        }
+        if (!("revision" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["revision"] = 0;
+        }
+        if (!("createdAt" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["createdAt"] = 0;
+        }
+        if (!("updatedAt" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["updatedAt"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Document instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {Document}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new Document(/** @type {Partial<Document>} */($$parsedSource));
+    }
+}
+
+/**
+ * DocumentChange 是原子批处理中的一次写入或删除，revision=-1 无条件、0 仅新建、正数要求版本一致。
+ */
+export class DocumentChange {
+    /**
+     * Creates a new DocumentChange instance.
+     * @param {Partial<DocumentChange>} [$$source = {}] - The source object to create the DocumentChange.
+     */
+    constructor($$source = {}) {
+        if (!("operation" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["operation"] = "";
+        }
+        if (!("collection" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["collection"] = "";
+        }
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("data" in $$source)) {
+            /**
+             * @member
+             * @type {json$0.RawMessage}
+             */
+            this["data"] = null;
+        }
+        if (!("revision" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["revision"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DocumentChange instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DocumentChange}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new DocumentChange(/** @type {Partial<DocumentChange>} */($$parsedSource));
+    }
+}
+
+/**
+ * DocumentPage 返回真实总数及下一偏移量；响应接近 512 KiB 时提前结束本页，调用方按 nextOffset 继续取。
+ */
+export class DocumentPage {
+    /**
+     * Creates a new DocumentPage instance.
+     * @param {Partial<DocumentPage>} [$$source = {}] - The source object to create the DocumentPage.
+     */
+    constructor($$source = {}) {
+        if (!("items" in $$source)) {
+            /**
+             * @member
+             * @type {Document[]}
+             */
+            this["items"] = [];
+        }
+        if (!("total" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["total"] = 0;
+        }
+        if (!("nextOffset" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["nextOffset"] = 0;
+        }
+        if (!("hasMore" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["hasMore"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DocumentPage instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DocumentPage}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType7;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("items" in $$parsedSource) {
+            $$parsedSource["items"] = $$createField0_0($$parsedSource["items"]);
+        }
+        return new DocumentPage(/** @type {Partial<DocumentPage>} */($$parsedSource));
+    }
+}
+
+/**
+ * DocumentQuery 提供集合内分页、顶层字段精确匹配和稳定排序，不接受原始 SQL 或文件路径。
+ */
+export class DocumentQuery {
+    /**
+     * Creates a new DocumentQuery instance.
+     * @param {Partial<DocumentQuery>} [$$source = {}] - The source object to create the DocumentQuery.
+     */
+    constructor($$source = {}) {
+        if (!("collection" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["collection"] = "";
+        }
+        if (!("where" in $$source)) {
+            /**
+             * @member
+             * @type {{ [_ in string]?: json$0.RawMessage }}
+             */
+            this["where"] = {};
+        }
+        if (!("offset" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["offset"] = 0;
+        }
+        if (!("limit" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["limit"] = 0;
+        }
+        if (!("sortBy" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["sortBy"] = "";
+        }
+        if (!("descending" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["descending"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DocumentQuery instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DocumentQuery}
+     */
+    static createFrom($$source = {}) {
+        const $$createField1_0 = $$createType8;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("where" in $$parsedSource) {
+            $$parsedSource["where"] = $$createField1_0($$parsedSource["where"]);
+        }
+        return new DocumentQuery(/** @type {Partial<DocumentQuery>} */($$parsedSource));
+    }
+}
+
+/**
  * DownloadInfo 是下载任务快照；终态为 completed、cancelled 或 failed，progress 可通过 ListDownloads 轮询。
  */
 export class DownloadInfo {
@@ -809,6 +1060,118 @@ export class FileGrant {
     static createFrom($$source = {}) {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new FileGrant(/** @type {Partial<FileGrant>} */($$parsedSource));
+    }
+}
+
+/**
+ * ManagedTask 是统一任务中心的公开快照，不持久化命令参数、下载地址、文件 token 或函数代码。
+ */
+export class ManagedTask {
+    /**
+     * Creates a new ManagedTask instance.
+     * @param {Partial<ManagedTask>} [$$source = {}] - The source object to create the ManagedTask.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("kind" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["kind"] = "";
+        }
+        if (!("title" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["title"] = "";
+        }
+        if (!("state" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["state"] = "";
+        }
+        if (!("progress" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["progress"] = 0;
+        }
+        if (!("message" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["message"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {Error | null | undefined}
+             */
+            this["error"] = undefined;
+        }
+        if (!("createdAt" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["createdAt"] = 0;
+        }
+        if (!("updatedAt" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["updatedAt"] = 0;
+        }
+        if (!("attempt" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["attempt"] = 0;
+        }
+        if (!("canCancel" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["canCancel"] = false;
+        }
+        if (!("canRetry" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["canRetry"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ManagedTask instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ManagedTask}
+     */
+    static createFrom($$source = {}) {
+        const $$createField6_0 = $$createType3;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("error" in $$parsedSource) {
+            $$parsedSource["error"] = $$createField6_0($$parsedSource["error"]);
+        }
+        return new ManagedTask(/** @type {Partial<ManagedTask>} */($$parsedSource));
     }
 }
 
@@ -1075,9 +1438,9 @@ export class SettingsSnapshot {
      * @returns {SettingsSnapshot}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType7;
-        const $$createField1_0 = $$createType7;
-        const $$createField2_0 = $$createType8;
+        const $$createField0_0 = $$createType10;
+        const $$createField1_0 = $$createType10;
+        const $$createField2_0 = $$createType11;
         const $$createField9_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("active" in $$parsedSource) {
@@ -1334,7 +1697,7 @@ export class WindowInfo {
      * @returns {WindowInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField5_0 = $$createType9;
+        const $$createField5_0 = $$createType12;
         const $$createField7_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("bounds" in $$parsedSource) {
@@ -1354,7 +1717,10 @@ const $$createType2 = Error.createFrom;
 const $$createType3 = $Create.Nullable($$createType2);
 const $$createType4 = $Create.Array($Create.Any);
 const $$createType5 = CommandInfo.createFrom;
-const $$createType6 = setting$0.PkgInfo.createFrom;
-const $$createType7 = $Create.Nullable($$createType6);
-const $$createType8 = Preferences.createFrom;
-const $$createType9 = application$0.Rect.createFrom;
+const $$createType6 = Document.createFrom;
+const $$createType7 = $Create.Array($$createType6);
+const $$createType8 = $Create.Map($Create.Any, $Create.Any);
+const $$createType9 = setting$0.PkgInfo.createFrom;
+const $$createType10 = $Create.Nullable($$createType9);
+const $$createType11 = Preferences.createFrom;
+const $$createType12 = application$0.Rect.createFrom;

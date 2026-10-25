@@ -2,7 +2,10 @@
   "appId": "hybrid-infra",
   "title": "Hybrid App",
   "splashEnabled": true,
-  "icons": { "application": "", "tray": "" },
+  "icons": {
+    "application": "",
+    "tray": ""
+  },
   "url": "/",
   "pageMode": "builtin",
   "debug": false,
@@ -34,7 +37,9 @@
     "diagnostics",
     "backups",
     "updates",
-    "settings"
+    "tasks",
+    "tasks.manage",
+    "database"
   ],
   "updates": {
     "enabled": false,

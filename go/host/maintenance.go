@@ -19,10 +19,10 @@ import (
 	"time"
 )
 
-const DataSchema = 1
+const DataSchema = 2
 const backupLimit = 48 << 20
 
-var backupFiles = []string{"store.json", "preferences.json", "window-state.json", "data-version.json"}
+var backupFiles = []string{"store.json", "preferences.json", "window-state.json", "data-version.json", databaseSnapshotFile}
 var diagnosticCode = regexp.MustCompile(`^[A-Z][A-Z0-9_]{0,63}$`)
 
 // DiagnosticEvent 只记录固定类别和错误码，不收集页面地址、命令输出、业务数据或秘密值。
@@ -51,6 +51,7 @@ type Maintenance struct {
 	update     UpdateState
 	cancel     func()
 	desktop    *Desktop
+	database   *BusinessDatabase
 }
 
 // NewMaintenance 创建维护管理器；不发起网络请求，也不修改启动设置。
@@ -223,6 +224,9 @@ func (m *Maintenance) ExportDiagnostics(ctx context.Context, token string, data 
 // AttachDesktop 在服务注册期间接入文件凭证管理器。
 func (m *Maintenance) AttachDesktop(desktop *Desktop) { m.desktop = desktop }
 
+// AttachDatabase 接入在线逻辑快照；备份不直接复制可能正在写入的 SQLite 文件。
+func (m *Maintenance) AttachDatabase(database *BusinessDatabase) { m.database = database }
+
 // backupPath 将不透明 ID 限制为 32 位小写十六进制，拒绝任意路径和扩展名。
 func (m *Maintenance) backupPath(id string) (string, error) {
 	b, err := hex.DecodeString(id)
@@ -245,6 +249,38 @@ func (m *Maintenance) createBackup() (BackupInfo, error) {
 	total := 0
 	for _, name := range backupFiles {
 		path := filepath.Join(m.dir, name)
+		if name == databaseSnapshotFile {
+			var data []byte
+			var e error
+			if m.database != nil {
+				data, e = m.database.exportSnapshot()
+			} else {
+				data, e = snapshotDatabaseFile(m.dir)
+			}
+			if e != nil {
+				return info, e
+			}
+			if data == nil {
+				continue
+			}
+			if !databaseSnapshotValid(data) {
+				return info, Fail("E_BACKUP_INVALID", "数据库快照无效")
+			}
+			total += len(data)
+			if total > backupLimit {
+				return info, Fail("E_TOO_LARGE", "备份数据超限")
+			}
+			hash := sha256.Sum256(data)
+			info.Hashes[name] = hex.EncodeToString(hash[:])
+			entry, e := w.Create(name)
+			if e != nil {
+				return info, e
+			}
+			if _, e = entry.Write(data); e != nil {
+				return info, e
+			}
+			continue
+		}
 		stat, e := os.Lstat(path)
 		if errors.Is(e, os.ErrNotExist) {
 			continue
@@ -340,6 +376,9 @@ func (m *Maintenance) readBackup(id string) (BackupInfo, map[string][]byte, erro
 		return info, nil, Fail("E_BACKUP_INVALID", "备份条目不完整")
 	}
 	for name, b := range data {
+		if name == databaseSnapshotFile && !databaseSnapshotValid(b) {
+			return info, nil, Fail("E_BACKUP_INVALID", "数据库快照损坏")
+		}
 		h := sha256.Sum256(b)
 		if info.Hashes[name] != hex.EncodeToString(h[:]) {
 			return info, nil, Fail("E_BACKUP_INVALID", "备份校验失败")
@@ -446,6 +485,10 @@ func (m *Maintenance) replaceData(data map[string][]byte) error {
 		} else if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
 			return err
 		}
+	}
+	// 旧备份没有数据库时写入空恢复标记，下一次打开 SQLite 会事务性清空，避免混入恢复前的新业务记录。
+	if _, ok := data[databaseSnapshotFile]; !ok {
+		return atomicWrite(filepath.Join(m.dir, databaseSnapshotFile), []byte(`{"schema":1,"documents":[],"tasks":[]}`))
 	}
 	return nil
 }

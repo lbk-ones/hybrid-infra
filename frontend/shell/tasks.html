@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>任务与数据中心 · Hybrid</title>
+    <link rel="stylesheet" href="/shell.css" />
+    <link rel="stylesheet" href="/tasks.css" />
+  </head>
+  <body class="tasks-page">
+    <header>
+      <div>
+        <p class="eyebrow">HYBRID / TASKS & DATA</p>
+        <h1>任务与数据中心</h1>
+        <p>让后台进度看得见，让本地业务数据有处安放。</p>
+      </div>
+      <nav>
+        <a href="/shell/docs.html#task-center">开发文档</a
+        ><a href="/shell/settings.html">配置中心</a><a href="/">能力工作台 ↗</a>
+      </nav>
+    </header>
+    <main>
+      <p id="notice" role="status" aria-live="polite">正在连接宿主…</p>
+      <section data-cap="tasks">
+        <div class="heading">
+          <div>
+            <p class="eyebrow">01 / TASK CENTER</p>
+            <h2>统一任务中心</h2>
+          </div>
+          <span id="task-count">—</span>
+        </div>
+        <p class="hint">
+          并发队列上限 2 项，保留最近 500
+          条历史。取消业务函数需要函数配合，关闭页面后无法重放原函数。
+        </p>
+        <div class="toolbar">
+          <label>演示名称<input id="task-title" value="业务进度演示" maxlength="120" /></label
+          ><button id="demo" class="primary">运行进度演示</button
+          ><button id="refresh">刷新列表</button>
+        </div>
+        <details>
+          <summary>原生任务排队</summary>
+          <div class="native-grid">
+            <label
+              >白名单程序（JSON）<textarea id="command" rows="4">
+{"mode":"program","program":"go","args":["version"],"timeoutMs":5000}</textarea
+              ><button id="queue-shell">提交命令任务</button></label
+            ><label
+              >下载地址<input id="download-url" placeholder="https://example.com/file.zip" /><button
+                id="queue-download"
+              >
+                选择保存位置并排队</button
+              ><span class="hint">需要 downloads 与 files 权限，完成前保留文件授权。</span></label
+            >
+          </div>
+        </details>
+        <div class="toolbar">
+          <label
+            >任务类型<select id="kind">
+              <option value="">全部类型</option>
+              <option value="business">业务函数</option>
+              <option value="shell">Shell 命令</option>
+              <option value="download">文件下载</option>
+            </select></label
+          ><label
+            >任务状态<select id="state">
+              <option value="">全部状态</option>
+              <option value="active">进行中</option>
+              <option value="completed">已完成</option>
+              <option value="failed">失败</option>
+              <option value="cancelled">已取消</option>
+              <option value="interrupted">已中断</option>
+            </select></label
+          >
+        </div>
+        <div id="tasks" aria-live="polite"><p class="hint">暂无任务</p></div>
+      </section>
+      <section data-cap="database">
+        <div class="heading">
+          <div>
+            <p class="eyebrow">02 / LOCAL DATABASE</p>
+            <h2>本地业务数据库</h2>
+          </div>
+          <span>SQLite · 持久化</span>
+        </div>
+        <p class="hint">
+          同来源窗口共享记录，不同来源隔离。单条最多 64 KiB，总业务 JSON 最多 8 MiB。示例使用独立的
+          docs-demo 集合。
+        </p>
+        <div class="database-grid">
+          <div>
+            <div class="toolbar">
+              <label>集合<input id="collection" value="docs-demo" maxlength="80" /></label
+              ><label>记录 ID<input id="record-id" value="order-001" maxlength="80" /></label
+              ><label>版本号<input id="revision" type="number" min="-1" value="0" /></label>
+            </div>
+            <p class="hint">
+              0 仅新建，-1 覆盖写入，正数校验读到的版本。读取后会自动填入最新版本，避免多人覆盖。
+            </p>
+            <label
+              >业务数据（JSON 对象）<textarea id="document" rows="8">
+{"title":"本地订单示例","status":"draft","amount":128}</textarea
+              >
+            </label>
+            <div class="toolbar">
+              <button id="put" class="primary">保存记录</button><button id="get">读取记录</button
+              ><button id="delete">删除记录</button>
+            </div>
+          </div>
+          <div>
+            <label>查询条件（顶层字段精确匹配）<textarea id="where" rows="3">{}</textarea></label>
+            <div class="toolbar">
+              <label>每页条数<input id="limit" type="number" min="1" max="100" value="10" /></label
+              ><button id="query">查询集合</button><button id="next" disabled>下一页</button>
+            </div>
+            <pre id="database-result">操作结果将显示在这里</pre>
+          </div>
+        </div>
+      </section>
+    </main>
+    <dialog id="confirm">
+      <form method="dialog">
+        <h2>删除这条业务记录？</h2>
+        <p>删除后需要通过已有备份恢复。</p>
+        <div class="toolbar">
+          <button value="cancel">取消</button><button value="yes">确认删除</button>
+        </div>
+      </form>
+    </dialog>
+    <script type="module" src="/src/shell-tasks.js"></script>
+  </body>
+</html>

@@ -7,7 +7,7 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { packageRelease } from "./package-release.mjs";
 
-const exe = path.resolve("bin/hybrid-infra.exe");
+const exe = path.resolve(process.env.HYBRID_RELEASE_TEST_EXE || "bin/hybrid-infra.exe");
 let built = process.platform === "win32";
 try {
   await access(exe);
@@ -41,6 +41,7 @@ test(
       const payload = Buffer.from(envelope.payload, "base64");
       assert.ok(verify(null, payload, publicKey, Buffer.from(envelope.signature, "base64")));
       const manifest = JSON.parse(payload);
+      assert.equal(manifest.maxDataSchema, info.dataSchema);
       assert.equal(
         manifest.sha256,
         createHash("sha256")
